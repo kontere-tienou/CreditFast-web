@@ -26,6 +26,12 @@ function formatDateTime(value?: string | null) {
 
 function targetViewFor(item: AppNotification): { view: string; label: string } | null {
   const type = (item.type || '').toUpperCase();
+  if (type === 'FIELD_VISIT') {
+    const role = getUiSession()?.role;
+    if (role === 'CREDIT_OFFICER') return { view: 'view-agent-field-visits', label: 'Voir les visites terrain' };
+    if (role === 'ADMIN') return { view: 'view-admin-field-visits', label: 'Voir les visites terrain' };
+    return null;
+  }
   if (type.startsWith('SAVINGS_MEMBERSHIP_')) {
     return getUiSession()?.role === 'ADMIN'
       ? { view: 'view-admin-savings', label: 'Voir les adhésions épargne' }
@@ -157,7 +163,7 @@ export function NotificationBell() {
               {items.map((item) => {
                 const isActive = activeId === item.id;
                 const shown = isActive && detail ? detail : item;
-                const target = getUiSession()?.role === 'CLIENT' || (getUiSession()?.role === 'ADMIN' && shown.type?.toUpperCase().startsWith('SAVINGS_MEMBERSHIP_')) ? targetViewFor(shown) : null;
+                const target = getUiSession()?.role === 'CLIENT' || shown.type?.toUpperCase() === 'FIELD_VISIT' || (getUiSession()?.role === 'ADMIN' && shown.type?.toUpperCase().startsWith('SAVINGS_MEMBERSHIP_')) ? targetViewFor(shown) : null;
                 return (
                   <li key={item.id}>
                     <div className="cf-notif-row">

@@ -27,6 +27,7 @@ import {
 import { LegacyDialogs } from '@/features/modals';
 import { ClientSavingsPage } from '@/features/savings/ClientSavingsPage';
 import { AdminSavingsPage } from '@/features/admin/AdminSavingsPage';
+import { FieldVisitsPage } from '@/features/agent/FieldVisitsPage';
 
 function AppHomeRedirect() {
   const session = getUiSession();
@@ -72,6 +73,7 @@ export function AppRouter() {
         <Route element={<RequireRole allow={['CREDIT_OFFICER']} />}>
           <Route path="agent" element={<AgentDashboardPage />} />
           <Route path="agent/inspections" element={<AgentInspectionsPage />} />
+          <Route path="agent/field-visits" element={<FieldVisitsPage />} />
           <Route path="agent/clients" element={<AgentClientsPage />} />
           <Route path="agent/complements" element={<AgentComplementsPage />} />
           <Route path="agent/loans" element={<AgentLoansPage />} />
@@ -93,6 +95,7 @@ export function AppRouter() {
           <Route path="admin" element={<AdminDashboardPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="admin/savings" element={<AdminSavingsPage />} />
+          <Route path="admin/field-visits" element={<FieldVisitsPage />} />
           <Route path="admin/roles" element={<AdminRolesPage />} />
           <Route path="admin/scoring" element={<AdminScoringPage />} />
           <Route path="admin/audit" element={<AdminAuditPage />} />

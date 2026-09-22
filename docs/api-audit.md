@@ -13,9 +13,8 @@ Audit du code présent dans src/ et recherche complémentaire dans public/js/. C
 | Classement | Opérations |
 |---|---:|
 | Partiel / à corriger | 23 |
-| Raccordé — aucun écart relevé | 60 |
+| Raccordé — aucun écart relevé | 68 |
 | Adaptateur inutilisé | 2 |
-| Absent du frontend | 8 |
 
 Les catégories sont exclusives. Un endpoint marqué partiel peut fonctionner dans certains parcours. Les champs facultatifs non exposés et les plafonds de pagination ne sont pas des erreurs bloquantes sur tous les dossiers.
 
@@ -242,14 +241,14 @@ Le préfixe /api est celui de la documentation. Les appels frontend utilisent VI
 
 | Méthode et endpoint | État | Implémentation / appelant | Vérification ou reste à faire |
 |---|---|---|---|
-| `GET /api/agent/field-visits` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `GET /api/agent/requests/{creditRequest}/field-visits` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `POST /api/agent/requests/{creditRequest}/field-visits` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `GET /api/agent/field-visits/{fieldVisit}` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `PUT /api/agent/field-visits/{fieldVisit}` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `POST /api/agent/field-visits/{fieldVisit}/start` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `POST /api/agent/field-visits/{fieldVisit}/complete` | Absent du frontend | — | F01 — À implémenter côté frontend. |
-| `POST /api/agent/field-visits/{fieldVisit}/cancel` | Absent du frontend | — | F01 — À implémenter côté frontend. |
+| `GET /api/agent/field-visits` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:59](../src/api/fieldVisits.ts#L59) — listFieldVisits; appels : [src/features/agent/FieldVisitsPage.tsx:50](../src/features/agent/FieldVisitsPage.tsx#L50) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `GET /api/agent/requests/{creditRequest}/field-visits` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:62](../src/api/fieldVisits.ts#L62) — listRequestFieldVisits; appels : [src/features/agent/FieldVisitsPage.tsx:49](../src/features/agent/FieldVisitsPage.tsx#L49) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `POST /api/agent/requests/{creditRequest}/field-visits` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:70](../src/api/fieldVisits.ts#L70) — createFieldVisit; appels : [src/features/agent/FieldVisitsPage.tsx:86](../src/features/agent/FieldVisitsPage.tsx#L86) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `GET /api/agent/field-visits/{fieldVisit}` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:65](../src/api/fieldVisits.ts#L65) — getFieldVisit; appels : [src/features/agent/FieldVisitsPage.tsx:60](../src/features/agent/FieldVisitsPage.tsx#L60) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `PUT /api/agent/field-visits/{fieldVisit}` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:73](../src/api/fieldVisits.ts#L73) — updateFieldVisit; appels : [src/features/agent/FieldVisitsPage.tsx:87](../src/features/agent/FieldVisitsPage.tsx#L87) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `POST /api/agent/field-visits/{fieldVisit}/start` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:76](../src/api/fieldVisits.ts#L76) — startFieldVisit; appels : [src/features/agent/FieldVisitsPage.tsx:88](../src/features/agent/FieldVisitsPage.tsx#L88) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `POST /api/agent/field-visits/{fieldVisit}/complete` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:79](../src/api/fieldVisits.ts#L79) — completeFieldVisit; appels : [src/features/agent/FieldVisitsPage.tsx:92](../src/features/agent/FieldVisitsPage.tsx#L92) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `POST /api/agent/field-visits/{fieldVisit}/cancel` | Raccordé — aucun écart relevé | [src/api/fieldVisits.ts:82](../src/api/fieldVisits.ts#L82) — cancelFieldVisit; appels : [src/features/agent/FieldVisitsPage.tsx:95](../src/features/agent/FieldVisitsPage.tsx#L95) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
 
 ### Prêts
 
@@ -265,10 +264,10 @@ Le préfixe /api est celui de la documentation. Les appels frontend utilisent VI
 
 | Méthode et endpoint | État | Implémentation / appelant | Vérification ou reste à faire |
 |---|---|---|---|
-| `GET /api/notifications` | Partiel / à corriger | [src/api/notifications.ts:31](../src/api/notifications.ts#L31) — listNotifications; appels : [src/features/agent/fillAgentDrawers.ts:1478](../src/features/agent/fillAgentDrawers.ts#L1478), [src/features/workflow/NotificationBell.tsx:57](../src/features/workflow/NotificationBell.tsx#L57) | F12 — Première page seulement et 12 éléments affichés ; absence de navigation vers les plus anciens. Type FIELD_VISIT sans libellé/lien spécialisé. |
-| `POST /api/notifications/{notification}/read` | Raccordé — aucun écart relevé | [src/api/notifications.ts:56](../src/api/notifications.ts#L56) — markNotificationRead; appels : [src/features/workflow/NotificationBell.tsx:102](../src/features/workflow/NotificationBell.tsx#L102) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
-| `GET /api/notifications/{notification}` | Raccordé — aucun écart relevé | [src/api/notifications.ts:41](../src/api/notifications.ts#L41) — getNotification; appels : [src/features/workflow/NotificationBell.tsx:105](../src/features/workflow/NotificationBell.tsx#L105) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
-| `DELETE /api/notifications/{notification}` | Raccordé — aucun écart relevé | [src/api/notifications.ts:60](../src/api/notifications.ts#L60) — deleteNotification; appels : [src/features/workflow/NotificationBell.tsx:116](../src/features/workflow/NotificationBell.tsx#L116) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `GET /api/notifications` | Partiel / à corriger | [src/api/notifications.ts:32](../src/api/notifications.ts#L32) — listNotifications; appels : [src/features/agent/fillAgentDrawers.ts:1478](../src/features/agent/fillAgentDrawers.ts#L1478), [src/features/workflow/NotificationBell.tsx:63](../src/features/workflow/NotificationBell.tsx#L63) | F12 — Première page seulement et 12 éléments affichés ; absence de navigation vers les plus anciens. Type FIELD_VISIT sans libellé/lien spécialisé. |
+| `POST /api/notifications/{notification}/read` | Raccordé — aucun écart relevé | [src/api/notifications.ts:57](../src/api/notifications.ts#L57) — markNotificationRead; appels : [src/features/workflow/NotificationBell.tsx:108](../src/features/workflow/NotificationBell.tsx#L108) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `GET /api/notifications/{notification}` | Raccordé — aucun écart relevé | [src/api/notifications.ts:42](../src/api/notifications.ts#L42) — getNotification; appels : [src/features/workflow/NotificationBell.tsx:111](../src/features/workflow/NotificationBell.tsx#L111) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
+| `DELETE /api/notifications/{notification}` | Raccordé — aucun écart relevé | [src/api/notifications.ts:61](../src/api/notifications.ts#L61) — deleteNotification; appels : [src/features/workflow/NotificationBell.tsx:122](../src/features/workflow/NotificationBell.tsx#L122) | Méthode/chemin et raccordement repérés ; aucun écart spécifique relevé dans cet audit. Recette authentifiée à effectuer. |
 
 ### Photo de profil
 

@@ -6,6 +6,7 @@ import { DossierBrowser } from '@/shared/ui/DossierBrowser';
 import { callApp } from '@/shared/ui/legacy';
 import { borrowerName, formatFcfa } from '@/features/workflow/workflow';
 import { useAgentWorkspace } from './useAgentWorkspace';
+import { Link } from 'react-router-dom';
 
 export function AgentInspectionsPage() {
   const { guarantees, pendingGuarantees } = useAgentWorkspace();
@@ -15,7 +16,7 @@ export function AgentInspectionsPage() {
 
   return (
     <Screen viewId="view-agent-inspections">
-      <PageHeader title="Contrôle terrain des garanties" crumbs={['Espace agent', 'Visite et validation']} />
+      <PageHeader title="Contrôle terrain des garanties" crumbs={['Espace agent', 'Visite et validation']} actions={<Link className="btn btn-primary" to="/app/agent/field-visits">Planning et rapports de visite</Link>} />
 
       <div className="grid-4" style={{ marginBottom: '1.5rem' }}>
         <StatCard tone="amber" icon="fa-clipboard-check" value={String(pendingGuarantees.length)} label="À examiner sur le terrain" trend={<>Contrôle non encore validé</>} />

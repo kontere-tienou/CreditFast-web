@@ -15,6 +15,7 @@ export type AppNotification = {
 export function notificationTypeLabel(type?: string) {
   const key = (type || '').toUpperCase();
   const labels: Record<string, string> = {
+    FIELD_VISIT: 'Visite terrain',
     SAVINGS_MEMBERSHIP_SUBMITTED: 'Adhésion reçue',
     SAVINGS_MEMBERSHIP_APPROVED: 'Compte épargne validé',
     SAVINGS_MEMBERSHIP_REJECTED: 'Adhésion refusée',

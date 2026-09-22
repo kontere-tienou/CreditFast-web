@@ -42,6 +42,8 @@ export const VIEW_PATHS: Record<string, string> = {
   "view-client-advisor": "/app/client/advisor",
   "view-role-agent": "/app/agent",
   "view-agent-inspections": "/app/agent/inspections",
+  "view-agent-field-visits": "/app/agent/field-visits",
+  "view-admin-field-visits": "/app/admin/field-visits",
   "view-agent-clients": "/app/agent/clients",
   "view-agent-complements": "/app/agent/complements",
   "view-agent-loans": "/app/agent/loans",
@@ -150,6 +152,9 @@ export const ROLE_PROFILES: Record<RoleCode, RoleProfile> = {
             path: "/app/agent",
             icon: "fa-inbox",
             label: "Tableau de Bord Agent",
+          },
+          {
+            id: "nav-agent-field-visits", path: "/app/agent/field-visits", icon: "fa-calendar-check", label: "Visites terrain",
           },
           {
             id: "nav-agent-inspections",
@@ -295,6 +300,9 @@ export const ROLE_PROFILES: Record<RoleCode, RoleProfile> = {
             path: "/app/admin",
             icon: "fa-gauge-high",
             label: "Tableau de Bord Admin",
+          },
+          {
+            id: "nav-admin-field-visits", path: "/app/admin/field-visits", icon: "fa-calendar-check", label: "Visites terrain",
           },
           {
             id: "nav-admin-savings", path: "/app/admin/savings", icon: "fa-piggy-bank", label: "Comptes épargne",

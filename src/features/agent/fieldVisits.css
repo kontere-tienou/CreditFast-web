@@ -1,0 +1,20 @@
+.visit-panel { padding: 20px; border: 1px solid var(--border-color, #e4ddc8); border-radius: 14px; background: var(--bg-surface, #fffef8); }
+.visit-filters, .visit-actions, .visit-card-header { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.visit-filters { align-items: end; margin-bottom: 20px; }
+.visit-filters label { flex: 1; min-width: 180px; }
+.visit-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; margin: 20px 0; }
+.visit-card-header { justify-content: space-between; margin-bottom: 16px; }
+.visit-card-header h2 { font-size: 1.15rem; margin: 0; }
+.visit-panel p { margin-bottom: 12px; }
+.visit-dialog { width: min(800px, 95vw); max-height: 90vh; margin: auto; border: 1px solid var(--border-color, #e4ddc8); border-radius: 16px; padding: 24px; background: var(--bg-surface, #fffef8); color: var(--text-primary, #0d2818); }
+.visit-dialog::backdrop { background: rgb(15 23 42 / 65%); backdrop-filter: blur(4px); }
+.visit-grid, .visit-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.visit-details { margin: 20px 0; }
+.visit-details dt { font-weight: 700; }
+.visit-details dd { white-space: pre-wrap; overflow-wrap: anywhere; }
+.visit-form { border: 0; padding: 0; margin: 16px 0 0; min-width: 0; display: grid; gap: 16px; }
+.visit-form label, .visit-filters label { display: grid; gap: 6px; }
+.visit-form .visit-checkbox { display: flex; align-items: center; }
+.visit-error { padding: 12px; color: #b91c1c; background: #fef2f2; border-radius: 8px; margin: 16px 0; }
+.visit-notice { padding: 12px; background: #eef4ee; color: #1b4332; border-radius: 8px; }
+@media (max-width: 600px) { .visit-grid, .visit-details { grid-template-columns: 1fr; } .visit-dialog { padding: 16px; } }
