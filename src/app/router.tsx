@@ -24,6 +24,7 @@ import {
   AdminScoringPage,
   AdminUsersPage,
 } from '@/features/admin';
+import { LegacyDialogs } from '@/features/modals';
 
 function AppHomeRedirect() {
   const session = getUiSession();
@@ -44,7 +45,7 @@ function RequireSession() {
   return (
     <AppShell>
       <Outlet />
-      {/*<LegacyModals />*/}
+      <LegacyDialogs />
     </AppShell>
   );
 }

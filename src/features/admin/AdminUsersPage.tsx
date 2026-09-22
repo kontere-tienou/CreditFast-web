@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import { AdminSavingsMemberships } from './AdminSavingsMemberships';
 import { toast } from "@heroui/react";
 import { Screen } from "@/shared/ui/Screen";
 import { PageHeader } from "@/shared/ui/PageHeader";
@@ -367,6 +368,8 @@ export function AdminUsersPage() {
           ? `${rows.length} comptes internes`
           : `${clientRows.length} clients externes`}
       </div>
+
+      {accountType === "external" && <AdminSavingsMemberships />}
 
       {accountType === "internal" ? (
         <AppTable

@@ -29,6 +29,8 @@ function setField(id: string, value?: string | number | null) {
     node.appendChild(option);
   }
   node.value = String(value);
+  node.dispatchEvent(new Event('input', { bubbles: true }));
+  node.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 function splitCity(raw: string) {
@@ -95,6 +97,7 @@ export async function hydrateWizardFromProfile(draft?: {
   requested_amount?: number;
   duration_months?: number;
   purpose?: string;
+  credit_type?: string | null;
   declared_monthly_income?: number;
   declared_monthly_expenses?: number;
   activity_id?: number;
@@ -150,6 +153,9 @@ export async function hydrateWizardFromProfile(draft?: {
   }
   if (draft?.duration_months) {
     setField('wiz-duration', draft.duration_months);
+  }
+  if (draft?.credit_type) {
+    setField('wiz-credit-type', draft.credit_type);
   }
   if (draft?.purpose) {
     setField('wiz-purpose', draft.purpose);

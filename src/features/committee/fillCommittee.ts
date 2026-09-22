@@ -1,16 +1,21 @@
 import { toast } from '@heroui/react';
 import {
   getCreditRequest,
+  listCreditRequestDocuments,
+  listCreditRequestGuarantees,
   listCommitteeRequests,
   loadCreditAnalysis,
   submitCommitteeDecision,
   type CreditAnalysis,
+  type CreditDocument,
+  type CreditGuarantee,
   type CreditRequest,
 } from '@/api/credit';
 import { isApiError } from '@/api/errors';
 import {
   borrowerName,
   creditStatusLabel,
+  formatDate,
   formatFcfa,
   getSelectedCreditRequestId,
   notifyRequestsChanged,
@@ -97,6 +102,151 @@ function riskTone(score: number | null) {
   return { label: 'Risque élevé', cls: 'badge badge-rejected' };
 }
 
+type CommitteeAuditEvent = {
+  title: string;
+  detail: string;
+  actor: string;
+  date?: string | null;
+  icon: string;
+  state: 'done' | 'active' | 'warn';
+};
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function latestDate(values: Array<string | null | undefined>) {
+  const dates = values
+    .filter((value): value is string => Boolean(value))
+    .map((value) => ({ value, time: Date.parse(value) }))
+    .filter((item) => Number.isFinite(item.time))
+    .sort((left, right) => right.time - left.time);
+  return dates[0]?.value ?? values.find(Boolean) ?? null;
+}
+
+function formatDateTimeShort(value?: string | null) {
+  if (!value) {
+    return 'Date non disponible';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return formatDate(value);
+  }
+  return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function isVerifiedStatus(status?: string | null) {
+  return ['VERIFIED', 'VALIDATED', 'APPROVED', 'CONFORME', 'ACCEPTED'].includes((status || '').toUpperCase());
+}
+
+function isRejectedStatus(status?: string | null) {
+  return ['REJECTED', 'FAILED', 'INVALID', 'ERROR'].includes((status || '').toUpperCase());
+}
+
+function isFinalDecision(row: CreditRequest) {
+  return ['APPROVED', 'REJECTED', 'AMENDED'].includes((row.status || '').toUpperCase());
+}
+
+function renderCommitteeAuditTrail(events: CommitteeAuditEvent[]) {
+  if (!events.length) {
+    return '<div class="reminder-empty">Aucun événement audit disponible pour ce dossier.</div>';
+  }
+  return events
+    .map(
+      (event) => `<div class="audit-event is-${event.state}">
+        <span class="audit-event-icon"><i class="fas ${event.icon}"></i></span>
+        <span>
+          <span class="audit-event-title">
+            <span>${escapeHtml(event.title)}</span>
+            <span class="audit-event-date">${escapeHtml(formatDateTimeShort(event.date))}</span>
+          </span>
+          <span class="audit-event-detail">${escapeHtml(event.detail)}</span>
+          <span class="audit-event-actor">${escapeHtml(event.actor)}</span>
+        </span>
+      </div>`,
+    )
+    .join('');
+}
+
+function buildCommitteeAuditTrail(row: CreditRequest, analysis: CreditAnalysis | null, docs: CreditDocument[], guarantees: CreditGuarantee[]) {
+  const docsDate = latestDate(docs.map((doc) => doc.uploaded_at));
+  const rejectedDocs = docs.filter((doc) => isRejectedStatus(doc.status)).length;
+  const guaranteeDate = latestDate(guarantees.map((item) => item.verified_at || item.created_at));
+  const guaranteeVerified = guarantees.some((item) => isVerifiedStatus(item.verification_status));
+  const score = formatScore(analysis?.overall_score);
+
+  const events: CommitteeAuditEvent[] = [
+    {
+      title: 'Dossier déposé',
+      detail: `Demande #${row.id} soumise pour ${formatFcfa(row.requested_amount)}${row.duration_months ? ` sur ${row.duration_months} mois` : ''}.`,
+      actor: 'Client',
+      date: row.submitted_at || row.created_at,
+      icon: 'fa-file-circle-plus',
+      state: row.submitted_at || row.created_at ? 'done' : 'active',
+    },
+    {
+      title: 'Justificatifs contrôlés',
+      detail: docs.length
+        ? `${docs.length} pièce${docs.length > 1 ? 's' : ''} de dossier disponible${docs.length > 1 ? 's' : ''}${rejectedDocs ? `, ${rejectedDocs} non conforme${rejectedDocs > 1 ? 's' : ''}` : ''}.`
+        : 'Aucune pièce de dossier remontée dans la file comité.',
+      actor: 'Agent / Analyste',
+      date: docsDate,
+      icon: rejectedDocs ? 'fa-file-circle-exclamation' : 'fa-file-shield',
+      state: rejectedDocs || !docs.length ? 'warn' : 'done',
+    },
+    {
+      title: 'Garantie instruite',
+      detail: guarantees.length
+        ? guaranteeVerified
+          ? 'Garantie présente et vérifiée avant décision.'
+          : 'Garantie présente mais contrôle terrain à confirmer dans les réserves.'
+        : 'Aucune garantie déclarée dans le dossier.',
+      actor: 'Agent terrain',
+      date: guaranteeDate,
+      icon: 'fa-shield-halved',
+      state: guaranteeVerified ? 'done' : 'warn',
+    },
+    {
+      title: 'Score et avis analyste',
+      detail: analysis
+        ? `Score ${score ?? '—'}/100, ${scoringLabel(analysis.recommendation).toLowerCase()}, confiance ${formatScore(analysis.confidence_score) ?? '—'}%.`
+        : 'Analyse risque non disponible au moment du vote.',
+      actor: 'Analyste risque',
+      date: analysis?.created_at,
+      icon: 'fa-chart-line',
+      state: analysis ? 'done' : 'warn',
+    },
+    {
+      title: isFinalDecision(row) ? 'Décision comité' : 'Dossier prêt pour vote',
+      detail: isFinalDecision(row)
+        ? `Décision enregistrée : ${creditStatusLabel(row.status)}.`
+        : 'Le comité peut approuver, refuser ou amender le montant et la durée.',
+      actor: 'Comité de crédit',
+      date: null,
+      icon: 'fa-gavel',
+      state: isFinalDecision(row) ? 'done' : 'active',
+    },
+  ];
+
+  if (row.loan_id || row.loan?.id) {
+    events.push({
+      title: 'Prêt créé après décision',
+      detail: `Contrat prêt #${row.loan_id ?? row.loan?.id} généré, décaissement à suivre par agent/admin.`,
+      actor: 'Back-office',
+      date: null,
+      icon: 'fa-file-contract',
+      state: 'done',
+    });
+  }
+
+  return events;
+}
+
 function fieldNumber(id: string, fallback?: number) {
   const node = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
   const value = Number(node?.value);
@@ -162,7 +312,7 @@ function bindLiveEstimate(row: CreditRequest) {
   update();
 }
 
-function fillShared(row: CreditRequest, analysis: CreditAnalysis | null) {
+function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: CreditDocument[] = [], guarantees: CreditGuarantee[] = []) {
   const name = borrowerName(row);
   const location = dash(borrowerLocation(row));
   const score = formatScore(analysis?.overall_score);
@@ -244,6 +394,10 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null) {
   setBar('com-drawer-bar-coldstart', guarantee);
   setBar('com-drawer-bar-stability', stability);
 
+  const auditEvents = buildCommitteeAuditTrail(row, analysis, docs, guarantees);
+  setHtml('com-drawer-audit-trail', renderCommitteeAuditTrail(auditEvents));
+  setText('com-drawer-audit-badge', `${auditEvents.length} trace${auditEvents.length > 1 ? 's' : ''}`);
+
   const voteGrid = document.querySelector('.committee-decision-cards-grid') as HTMLElement | null;
   if (voteGrid) {
     voteGrid.style.opacity = isCommitteePending(row.status) ? '1' : '0.55';
@@ -266,8 +420,12 @@ export async function fillAndOpenCommitteeDrawer(identifier?: string) {
     return;
   }
   setSelectedCreditRequestId(row.id);
-  const analysis = await loadCreditAnalysis(row.id).catch(() => null);
-  fillShared(row, analysis);
+  const [analysis, docs, guarantees] = await Promise.all([
+    loadCreditAnalysis(row.id).catch(() => null),
+    listCreditRequestDocuments(row.id).catch(() => [] as CreditDocument[]),
+    listCreditRequestGuarantees(row.id).catch(() => [] as CreditGuarantee[]),
+  ]);
+  fillShared(row, analysis, docs, guarantees);
   showBackdrop('committee-drawer-backdrop');
 }
 
@@ -284,8 +442,12 @@ export async function fillAndOpenCommitteeModal(identifier?: string) {
     return;
   }
   setSelectedCreditRequestId(row.id);
-  const analysis = await loadCreditAnalysis(row.id).catch(() => null);
-  fillShared(row, analysis);
+  const [analysis, docs, guarantees] = await Promise.all([
+    loadCreditAnalysis(row.id).catch(() => null),
+    listCreditRequestDocuments(row.id).catch(() => [] as CreditDocument[]),
+    listCreditRequestGuarantees(row.id).catch(() => [] as CreditGuarantee[]),
+  ]);
+  fillShared(row, analysis, docs, guarantees);
   showBackdrop('committee-drawer-backdrop', false);
   showBackdrop('committee-modal');
 }

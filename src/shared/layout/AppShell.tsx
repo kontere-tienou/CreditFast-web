@@ -168,7 +168,7 @@ export function AppShell({ children }: AppShellProps) {
             }}
           >
             <div className="brand-icon" title="Crédit Fast">
-              <i className="fas fa-hand-holding-dollar"></i>
+              <img src="/images/logo/faticon-w.png" alt="" />
             </div>
             <div className="brand-title-group">
               <span className="brand-name">CRÉDIT FAST</span>

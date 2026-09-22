@@ -24,9 +24,41 @@ export type CreditRequestClient = {
   };
 };
 
+export const CREDIT_PRODUCT_TYPES = [
+  'MORTGAGE',
+  'CONSUMER_ASSIGNED',
+  'CONSUMER_PERSONAL',
+  'REVOLVING',
+  'STUDENT',
+  'PROFESSIONAL_WORKING_CAPITAL',
+  'INVESTMENT',
+  'OVERDRAFT',
+  'CASH_FACILITY',
+  'CAMPAIGN',
+  'DISCOUNT',
+  'FACTORING',
+  'LEASING',
+] as const;
+
+export type CreditProductType = (typeof CREDIT_PRODUCT_TYPES)[number];
+
+export type CreditProduct = {
+  credit_type: CreditProductType | string;
+  label?: string | null;
+  name?: string | null;
+  description?: string | null;
+  min_amount?: number | null;
+  max_amount?: number | null;
+  min_duration_months?: number | null;
+  max_duration_months?: number | null;
+};
+
 export type CreditRequest = {
   id: number;
   client_id?: number;
+  borrower_type?: string | null;
+  credit_type?: CreditProductType | string | null;
+  credit_type_label?: string | null;
   requested_amount?: number;
   duration_months?: number;
   purpose?: string;
@@ -115,6 +147,7 @@ function unwrapGuarantee(payload: unknown): CreditGuarantee | null {
 }
 
 export type StoreCreditRequestPayload = {
+  credit_type: CreditProductType | string;
   requested_amount: number;
   duration_months: number;
   purpose: string;
@@ -129,6 +162,7 @@ export type StoreCreditRequestPayload = {
 };
 
 export type UpdateCreditRequestPayload = {
+  credit_type?: CreditProductType | string;
   requested_amount?: number;
   duration_months?: number;
   purpose?: string;
@@ -211,6 +245,7 @@ export function listCommitteeRequests() {
 }
 
 export async function createCreditRequest(body: StoreCreditRequestPayload) {
+  await (await import('./savings')).requireActiveSavingsAccount();
   const payload = await apiJson<unknown>('/credit-requests', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -231,6 +266,7 @@ export async function deleteCreditRequest(id: number) {
 }
 
 export async function submitCreditRequest(id: number) {
+  await (await import('./savings')).requireActiveSavingsAccount();
   const payload = await apiJson<unknown>(`/credit-requests/${id}/submit`, { method: 'POST' });
   return unwrapCreditRequest(payload);
 }
@@ -361,14 +397,44 @@ export function guaranteeStatusLabel(status?: string) {
 
 export type GuaranteeInput = { guarantee_type: string; declared_value: number; description?: string | null };
 
-export async function addCreditGuarantee(id: number, body: GuaranteeInput) {
+function guaranteeFormData(body: GuaranteeInput, file?: File | null, methodOverride?: string) {
+  const form = new FormData();
+  form.append('guarantee_type', body.guarantee_type);
+  form.append('declared_value', String(body.declared_value));
+  if (body.description) {
+    form.append('description', body.description);
+  }
+  if (file) {
+    form.append('file', file);
+  }
+  if (methodOverride) {
+    form.append('_method', methodOverride);
+  }
+  return form;
+}
+
+export async function addCreditGuarantee(id: number, body: GuaranteeInput, file?: File | null) {
+  if (file) {
+    const payload = await apiJson<unknown>(`/credit-requests/${id}/guarantees`, {
+      method: 'POST',
+      body: guaranteeFormData(body, file),
+    });
+    return unwrapGuarantee(payload) ?? payload;
+  }
   return apiJson<unknown>(`/credit-requests/${id}/guarantees`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
 }
 
-export async function updateCreditGuarantee(requestId: number, guaranteeId: number, body: GuaranteeInput) {
+export async function updateCreditGuarantee(requestId: number, guaranteeId: number, body: GuaranteeInput, file?: File | null) {
+  if (file) {
+    const payload = await apiJson<unknown>(`/credit-requests/${requestId}/guarantees/${guaranteeId}`, {
+      method: 'POST',
+      body: guaranteeFormData(body, file, 'PUT'),
+    });
+    return unwrapGuarantee(payload) ?? payload;
+  }
   return apiJson<unknown>(`/credit-requests/${requestId}/guarantees/${guaranteeId}`, {
     method: 'PUT',
     body: JSON.stringify(body),
@@ -409,6 +475,8 @@ export async function getClientSubmitBlockers(id: number) {
   }
   if (!guarantees.length) {
     blockers.push('garantie');
+  } else if (!guarantees.some((item) => guaranteeHasFile(item))) {
+    blockers.push('justificatif de garantie');
   }
   return { blockers, docs, guarantees };
 }
@@ -515,13 +583,146 @@ export type CreditAnomaly = {
   status?: string;
 };
 
-export async function listAnalystAnomalies() {
-  try {
-    const payload = await apiJson<unknown>('/analyst/anomalies');
-    return unwrapCollection<CreditAnomaly>(payload);
-  } catch {
+const CREDIT_PRODUCT_LABELS: Record<string, string> = {
+  MORTGAGE: 'Crédit immobilier',
+  CONSUMER_ASSIGNED: 'Crédit à la consommation affecté',
+  CONSUMER_PERSONAL: 'Crédit personnel',
+  REVOLVING: 'Crédit renouvelable',
+  STUDENT: 'Crédit étudiant',
+  PROFESSIONAL_WORKING_CAPITAL: 'Fonds de roulement professionnel',
+  INVESTMENT: 'Crédit d’investissement',
+  OVERDRAFT: 'Découvert autorisé',
+  CASH_FACILITY: 'Facilité de caisse',
+  CAMPAIGN: 'Crédit de campagne',
+  DISCOUNT: 'Escompte',
+  FACTORING: 'Affacturage',
+  LEASING: 'Crédit-bail / leasing',
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+function normalizedCreditProductType(value: unknown) {
+  return typeof value === 'string' ? value.trim().toUpperCase() : '';
+}
+
+function numericProductField(value: unknown) {
+  const number = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function normalizeCreditProduct(value: unknown): CreditProduct | null {
+  if (typeof value === 'string') {
+    const creditType = normalizedCreditProductType(value);
+    return creditType ? { credit_type: creditType, label: CREDIT_PRODUCT_LABELS[creditType] } : null;
+  }
+
+  const record = asRecord(value);
+  if (!record) {
+    return null;
+  }
+  const creditType = normalizedCreditProductType(
+    record.credit_type ?? record.type ?? record.code ?? record.value ?? record.slug,
+  );
+  if (!creditType) {
+    return null;
+  }
+  return {
+    ...(record as CreditProduct),
+    credit_type: creditType,
+    label:
+      typeof record.label === 'string'
+        ? record.label
+        : typeof record.name === 'string'
+          ? record.name
+          : typeof record.title === 'string'
+            ? record.title
+            : CREDIT_PRODUCT_LABELS[creditType],
+    min_amount: numericProductField(record.min_amount ?? record.minimum_amount),
+    max_amount: numericProductField(record.max_amount ?? record.maximum_amount),
+    min_duration_months: numericProductField(record.min_duration_months ?? record.minimum_duration_months),
+    max_duration_months: numericProductField(record.max_duration_months ?? record.maximum_duration_months),
+  };
+}
+
+function unwrapCreditProductRows(payload: unknown): unknown[] {
+  const rows = unwrapCollection<unknown>(payload);
+  if (rows.length) {
+    return rows;
+  }
+  const record = asRecord(payload);
+  if (!record) {
     return [];
   }
+  for (const key of ['credit_products', 'products', 'catalog', 'types']) {
+    const value = record[key];
+    if (Array.isArray(value)) {
+      return value;
+    }
+    const nested = asRecord(value);
+    if (nested) {
+      return Object.entries(nested).map(([creditType, product]) => {
+        const item = asRecord(product);
+        return item ? { credit_type: creditType, ...item } : creditType;
+      });
+    }
+  }
+  return [];
+}
+
+export function creditProductLabel(product: CreditProduct | string | null | undefined) {
+  if (!product) {
+    return 'Type de crédit';
+  }
+  if (typeof product === 'string') {
+    const creditType = normalizedCreditProductType(product);
+    return CREDIT_PRODUCT_LABELS[creditType] || creditType || product;
+  }
+  const creditType = normalizedCreditProductType(product.credit_type);
+  return product.label || product.name || CREDIT_PRODUCT_LABELS[creditType] || creditType || 'Type de crédit';
+}
+
+export async function listCreditProducts() {
+  const payload = await apiJson<unknown>('/credit-products');
+  const rows = unwrapCreditProductRows(payload)
+    .map((item) => normalizeCreditProduct(item))
+    .filter((item): item is CreditProduct => Boolean(item));
+  return rows.length
+    ? rows
+    : CREDIT_PRODUCT_TYPES.map((creditType) => ({ credit_type: creditType, label: CREDIT_PRODUCT_LABELS[creditType] }));
+}
+
+function unwrapAnomalies(payload: unknown) {
+  const rows = unwrapCollection<CreditAnomaly>(payload);
+  if (rows.length) {
+    return rows;
+  }
+  if (payload && typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+    if (Array.isArray(record.anomalies)) {
+      return record.anomalies as CreditAnomaly[];
+    }
+  }
+  return [];
+}
+
+export async function listAnalystAnomalies(requests?: Pick<CreditRequest, 'id'>[]) {
+  const rows = requests ?? await listAnalystRequests();
+  const batches = await Promise.all(
+    rows.map(async (request) => {
+      try {
+        const payload = await apiJson<unknown>(`/analyst/requests/${request.id}/anomalies`);
+        return unwrapAnomalies(payload).map((item) => ({
+          ...item,
+          credit_request_id: item.credit_request_id ?? request.id,
+        }));
+      } catch {
+        return [] as CreditAnomaly[];
+      }
+    }),
+  );
+  return batches.flat();
 }
 
 export async function resolveAnomaly(

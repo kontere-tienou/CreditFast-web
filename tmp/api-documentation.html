@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CreditFast API</title>
+    <link rel="stylesheet" type="text/css" href="/docs/asset/swagger-ui.css?v=3d5272b51bddf9865dd86841e02f6fca">
+    <link rel="icon" type="image/png" href="/docs/asset/favicon-32x32.png?v=40d4f2c38d1cd854ad463f16373cbcb6" sizes="32x32"/>
+    <link rel="icon" type="image/png" href="/docs/asset/favicon-16x16.png?v=f0ae831196d55d8f4115b6c5e8ec5384" sizes="16x16"/>
+    <style>
+    html
+    {
+        box-sizing: border-box;
+        overflow: -moz-scrollbars-vertical;
+        overflow-y: scroll;
+    }
+    *,
+    *:before,
+    *:after
+    {
+        box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+    </style>
+    </head>
+
+<body >
+<div id="swagger-ui"></div>
+
+<script src="/docs/asset/swagger-ui-bundle.js?v=36b33840fa97d8dd84c11b4cf8eeca46"></script>
+<script src="/docs/asset/swagger-ui-standalone-preset.js?v=0afa5c43477a19062b3fe33b95f5922d"></script>
+<script>
+    window.onload = function() {
+        const urls = [];
+
+                    urls.push({name: "CreditFast API", url: "/docs?api-docs.json"});
+        
+        // Build a system
+        const ui = SwaggerUIBundle({
+            dom_id: '#swagger-ui',
+            urls: urls,
+            "urls.primaryName": "CreditFast API",
+            operationsSorter: null,
+            configUrl: null,
+            validatorUrl: null,
+            oauth2RedirectUrl: "/api/oauth2-callback",
+
+            requestInterceptor: function(request) {
+                request.headers['X-CSRF-TOKEN'] = '';
+                return request;
+            },
+
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+
+            plugins: [
+                SwaggerUIBundle.plugins.DownloadUrl
+            ],
+
+            layout: "StandaloneLayout",
+            docExpansion : "list",
+            deepLinking: true,
+            filter: true,
+            persistAuthorization: "true",
+
+        })
+
+        window.ui = ui
+
+            }
+</script>
+</body>
+</html>

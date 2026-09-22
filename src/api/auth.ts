@@ -117,11 +117,16 @@ export async function loginWithCredentials(
 }
 
 export async function registerClient(body: {
+  client_type: 'PHYSICAL_PERSON' | 'LEGAL_ENTITY';
   first_name: string;
   last_name: string;
   phone: string;
   email?: string;
   password: string;
+  company_name?: string;
+  trade_name?: string;
+  registration_number?: string;
+  legal_form?: string;
 }) {
   return apiJson('/auth/register', {
     method: 'POST',

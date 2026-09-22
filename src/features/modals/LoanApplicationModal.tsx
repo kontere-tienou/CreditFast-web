@@ -1,7 +1,59 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { CfSelect } from '@/shared/ui/CfSelect';
 import { callApp } from '@/shared/ui/legacy';
 import { getUiSession } from '@/app/session';
+import {
+  CREDIT_PRODUCT_TYPES,
+  creditProductLabel,
+  listCreditProducts,
+  type CreditProduct,
+} from '@/api/credit';
+
+function fallbackCreditProducts(): CreditProduct[] {
+  return CREDIT_PRODUCT_TYPES.map((creditType) => ({
+    credit_type: creditType,
+    label: creditProductLabel(creditType),
+  }));
+}
+
+function CreditProductsSelect() {
+  const [products, setProducts] = useState<CreditProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    listCreditProducts()
+      .then((rows) => {
+        if (mounted) {
+          setProducts(rows.length ? rows : fallbackCreditProducts());
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setProducts(fallbackCreditProducts());
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <CfSelect id="wiz-credit-type" className="form-control" defaultValue="" disabled={loading && !products.length}>
+      <option value="">{loading ? 'Chargement des types de crédit…' : 'Sélectionner un type de crédit'}</option>
+      {products.map((product) => (
+        <option key={product.credit_type} value={product.credit_type}>
+          {creditProductLabel(product)}
+        </option>
+      ))}
+    </CfSelect>
+  );
+}
 
 function LoanWizardSessionPrefill() {
   useEffect(() => {
@@ -14,15 +66,23 @@ function LoanWizardSessionPrefill() {
     if (phone && session?.phone) {
       phone.value = session.phone;
     }
-    const file = document.getElementById('wiz-doc-file') as HTMLInputElement | null;
-    const label = document.getElementById('wiz-doc-file-name');
-    const onFile = () => {
-      if (label) {
-        label.textContent = file?.files?.[0]?.name || 'Aucune pièce sélectionnée';
-      }
+    const bindFileName = (inputId: string, labelId: string, emptyLabel: string) => {
+      const file = document.getElementById(inputId) as HTMLInputElement | null;
+      const label = document.getElementById(labelId);
+      const onFile = () => {
+        if (label) {
+          label.textContent = file?.files?.[0]?.name || emptyLabel;
+        }
+      };
+      file?.addEventListener('change', onFile);
+      return () => file?.removeEventListener('change', onFile);
     };
-    file?.addEventListener('change', onFile);
-    return () => file?.removeEventListener('change', onFile);
+    const unbindDoc = bindFileName('wiz-doc-file', 'wiz-doc-file-name', 'Aucune pièce sélectionnée');
+    const unbindGuarantee = bindFileName('wiz-guarantee-file', 'wiz-guarantee-file-name', 'Aucun justificatif de garantie sélectionné');
+    return () => {
+      unbindDoc();
+      unbindGuarantee();
+    };
   }, []);
   return null;
 }
@@ -140,47 +200,6 @@ export function LoanApplicationModal() {
           </div>
         </div>
 
-        {/* Profil d'Éligibilité & Cold Start (Inclusion Financière) */}
-        <div style={{ background: "var(--bg-body)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-lg)", padding: "1.15rem", marginTop: "1rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <label className="form-label" style={{ margin: 0, fontSize: "0.84rem", fontWeight: 700, color: "var(--text-primary)" }}>
-              <i className="fas fa-seedling text-emerald mr-1"></i> Profil d'Inclusion & Antécédents Financiers
-            </label>
-            <span className="badge badge-warning" id="modal-wiz-cold-start-indicator" style={{ fontSize: "0.7rem" }}>
-              <i className="fas fa-check"></i> Mode Cold Start Activé
-            </span>
-          </div>
-
-          <div className="grid-2" style={{ gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <label style={{ border: "2px solid var(--border-color)", borderRadius: "var(--radius-md)", padding: "0.85rem", cursor: "pointer", display: "flex", gap: "0.75rem", alignItems: "flex-start", background: "var(--bg-surface)", transition: "all 0.2s" }} id="modal-label-profile-standard">
-              <input type="radio" name="wiz-profile-mode" id="modal-wiz-profile-standard" value="STANDARD" onChange={() => callApp("handleWizardProfileModeChange", 'STANDARD')} style={{ marginTop: "3px" }} />
-              <div>
-                <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>Membre Existant
-                  CreditFast</strong>
-                <span style={{ fontSize: "0.73rem", color: "var(--text-subtle)", lineHeight: 1.3, display: "block" }}>Déjà
-                  client avec compte d'épargne ou historique régulier.</span>
-              </div>
-            </label>
-
-            <label style={{ border: "2px solid var(--primary-600)", borderRadius: "var(--radius-md)", padding: "0.85rem", cursor: "pointer", display: "flex", gap: "0.75rem", alignItems: "flex-start", background: "var(--cif-emerald-50, #eef4ee)", transition: "all 0.2s" }} id="modal-label-profile-coldstart">
-              <input type="radio" name="wiz-profile-mode" id="modal-wiz-profile-coldstart" value="COLD_START" defaultChecked onChange={() => callApp("handleWizardProfileModeChange", 'COLD_START')} style={{ marginTop: "3px" }} />
-              <div>
-                <strong style={{ fontSize: "0.82rem", color: "var(--emerald, #1b4332)", display: "block" }}>
-                  <i className="fas fa-seedling"></i> Primo-Demandeur (Cold Start)
-                </strong>
-                <span style={{ fontSize: "0.73rem", color: "var(--text-subtle)", lineHeight: 1.3, display: "block" }}>Nouveau
-                  bénéficiaire : évaluation inclusive par solvabilité réelle.</span>
-              </div>
-            </label>
-          </div>
-
-          <div id="modal-wiz-cold-start-info" style={{ background: "rgba(81, 142, 69, 0.08)", borderLeft: "3px solid var(--emerald, #518e45)", padding: "0.6rem 0.85rem", borderRadius: "0 var(--radius-md) var(--radius-md) 0", fontSize: "0.75rem", color: "var(--text-muted-dark)" }}>
-            <i className="fas fa-balance-scale text-emerald mr-1"></i> <strong>Modèle d'Inclusion CreditFast:</strong>
-            L'absence d'historique n'est pas pénalisée. Les pondérations s'adaptent à votre capacité réelle de
-            remboursement et à vos garanties de proximité.
-          </div>
-        </div>
-
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
           <button type="button" className="btn btn-primary" onClick={() => callApp("setModalWizardStep", 2)}>
             Suivant : Activité <i className="fas fa-arrow-right ml-1"></i>
@@ -263,6 +282,10 @@ export function LoanApplicationModal() {
         <h4 style={{ marginBottom: "1.25rem", fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
           <i className="fas fa-money-bill-wave text-primary mr-2"></i> Étape 4 : Détails du Financement Souhaité
         </h4>
+        <div className="form-group">
+          <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Type de crédit compatible *</label>
+          <CreditProductsSelect />
+        </div>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Montant Demandé (FCFA) *</label>
@@ -332,6 +355,25 @@ export function LoanApplicationModal() {
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Description de la garantie</label>
             <input type="text" id="wiz-guarantee-desc" className="form-control" placeholder="Ex. moto, stock de tissus, caution d’un parent…" />
           </div>
+        </div>
+        <div style={{ border: "1px dashed var(--primary-300)", borderRadius: "var(--radius-lg)", padding: "1rem", background: "rgba(81, 142, 69, 0.08)", marginTop: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", justifyContent: "space-between", flexWrap: "wrap" }}>
+            <div style={{ minWidth: 0, flex: "1 1 280px" }}>
+              <h5 style={{ margin: 0, fontSize: "0.88rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                <i className="fas fa-file-shield text-primary"></i> Justificatif de garantie
+              </h5>
+              <p style={{ margin: "0.25rem 0 0", fontSize: "0.76rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
+                Ajoutez une photo, un reçu, une attestation, un titre foncier ou tout document prouvant la garantie déclarée.
+              </p>
+            </div>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => document.getElementById('wiz-guarantee-file')?.click()} style={{ flex: "0 0 auto" }}>
+              <i className="fas fa-paperclip mr-1"></i> Joindre le justificatif
+            </button>
+          </div>
+          <input type="file" id="wiz-guarantee-file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} />
+          <p id="wiz-guarantee-file-name" style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0.65rem 0 0" }}>
+            Aucun justificatif de garantie sélectionné
+          </p>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
           <button type="button" className="btn btn-secondary" onClick={() => callApp("setModalWizardStep", 4)}><i className="fas fa-arrow-left mr-1"></i> Précédent</button>

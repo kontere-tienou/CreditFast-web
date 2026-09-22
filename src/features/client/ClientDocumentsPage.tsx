@@ -11,6 +11,7 @@ import {
   listCreditRequestDocuments,
   listMyCreditRequests,
   type CreditDocument,
+  type CreditRequest,
 } from '@/api/credit';
 import { deleteKycDocument, isKycDocumentRemovable, listKycDocuments, type KycDocument } from '@/api/profile';
 import { isApiError } from '@/api/errors';
@@ -76,6 +77,7 @@ function toRow(
 export function ClientDocumentsPage() {
   const [filter, setFilter] = useState<DocFilter>('ALL');
   const [rows, setRows] = useState<ClientDocumentRow[]>([]);
+  const [requests, setRequests] = useState<CreditRequest[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
 
@@ -108,6 +110,7 @@ export function ClientDocumentsPage() {
     const load = async () => {
       try {
         const [kyc, requests] = await Promise.all([listKycDocuments().catch(() => []), listMyCreditRequests().catch(() => [])]);
+        setRequests(requests);
         const creditDocs = (
           await Promise.all(
             requests.map(async (request) => {
@@ -120,6 +123,7 @@ export function ClientDocumentsPage() {
         setRows(next);
       } catch {
         setRows([]);
+        setRequests([]);
       } finally {
         setLoaded(true);
       }
@@ -139,6 +143,9 @@ export function ClientDocumentsPage() {
 
   const kycCount = rows.filter((row) => row.category === 'Identité').length;
   const creditCount = rows.length - kycCount;
+  const pendingComplements = requests.filter((row) => (row.status || '').toUpperCase() === 'VERIFICATION_REQUIRED');
+  const attentionRows = rows.filter((row) => row.expiring);
+  const latestPending = pendingComplements[0];
 
   return (
     <Screen viewId="view-client-documents">
@@ -153,6 +160,62 @@ export function ClientDocumentsPage() {
           <Button onClick={() => callApp('openUploadDocumentModal')}>
             <i className="fas fa-cloud-arrow-up"></i> Téléverser un document
           </Button>
+        </div>
+      </div>
+
+      <div className="client-mobile-panel">
+        <div className="client-mobile-copy">
+          <span className="badge badge-warning">
+            <i className="fas fa-mobile-screen-button"></i> Parcours mobile
+          </span>
+          <h3>Répondre à une relance depuis le téléphone</h3>
+          <p>
+            Le client peut recevoir la demande de complément, photographier une pièce, l’envoyer, puis suivre le contrôle agent sans revenir en agence.
+          </p>
+          <div className="client-mobile-actions">
+            <Button className="btn-sm" onClick={() => callApp('openUploadDocumentModal')}>
+              <i className="fas fa-camera"></i> Déposer une pièce
+            </Button>
+            <Button variant="secondary" className="btn-sm" onClick={() => callApp('switchView', 'view-client-requests')}>
+              <i className="fas fa-route"></i> Suivre le dossier
+            </Button>
+          </div>
+        </div>
+        <div className="client-mobile-status">
+          <div className="client-mobile-kpis">
+            <div>
+              <strong>{pendingComplements.length}</strong>
+              <span>complément{pendingComplements.length > 1 ? 's' : ''}</span>
+            </div>
+            <div>
+              <strong>{kycCount}</strong>
+              <span>KYC</span>
+            </div>
+            <div>
+              <strong>{attentionRows.length}</strong>
+              <span>à reprendre</span>
+            </div>
+          </div>
+          <div className="client-mobile-steps">
+            <span className={pendingComplements.length ? 'is-active' : 'is-done'}>
+              <i className="fas fa-bell"></i> Relance
+            </span>
+            <span className={kycCount || creditCount ? 'is-done' : 'is-active'}>
+              <i className="fas fa-camera"></i> Dépôt
+            </span>
+            <span className={attentionRows.length ? 'is-active' : rows.length ? 'is-done' : ''}>
+              <i className="fas fa-file-shield"></i> Contrôle
+            </span>
+          </div>
+          <p>
+            {latestPending
+              ? `Dossier #${latestPending.id} en attente : ajoutez la pièce demandée pour renvoyer le dossier à l’agent.`
+              : attentionRows.length
+                ? `${attentionRows.length} pièce${attentionRows.length > 1 ? 's' : ''} à corriger ou confirmer.`
+                : rows.length
+                  ? 'Les pièces déposées sont visibles et prêtes pour le suivi agent.'
+                  : 'Aucune pièce déposée pour le moment.'}
+          </p>
         </div>
       </div>
 

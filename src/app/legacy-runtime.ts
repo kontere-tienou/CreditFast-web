@@ -1,6 +1,7 @@
 import { ROLE_PROFILES, VIEW_PATHS } from '@/app/roles';
 import { getUiSession } from '@/app/session';
 import { toast } from '@heroui/react';
+import { fetchClientProfile, hasActiveSavingsAccount } from '@/api/profile';
 
 type LegacyApp = {
   currentRole?: string;
@@ -13,12 +14,17 @@ type LegacyApp = {
     purpose?: string;
     income?: number;
     expenses?: number;
-  }) => void;
+  }) => void | Promise<boolean>;
   closeNewLoanModal?: () => void;
+  setModalWizardStep?: (step: number) => void;
+  handleWizardProfileModeChange?: (mode: string) => void;
   submitNewCreditRequest?: () => void;
   submitAnalystReviewFromDrawer?: () => void;
   sendSelectedRequestToAnalysis?: () => void;
   requestComplementsFromAgentDrawer?: () => void;
+  triggerReminderFromDrawer?: () => void;
+  markDocReceivedFromDrawer?: () => void;
+  triggerDrawerFileUpload?: () => void;
   openAnalyst360FromAgent?: () => void;
   openAnalystDossierDrawer?: (identifier?: string) => void;
   requestComplementFromAnalystDrawer?: () => void;
@@ -131,6 +137,58 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   const fieldValue = (id: string) =>
     String((document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null)?.value ?? '').trim();
 
+  const fieldNumber = (id: string, fallback = 0) => {
+    const value = Number(fieldValue(id).replace(/\s/g, ''));
+    return Number.isFinite(value) ? value : fallback;
+  };
+
+  const setFieldValue = (id: string, value: unknown) => {
+    const field = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+    if (!field || value == null || value === '') {
+      return;
+    }
+    field.value = String(value);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  const formatLocalFcfa = (value: number) =>
+    new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(value || 0)).replace(/\u202f/g, ' ') + ' FCFA';
+
+  const ensureWizardCalculationListeners = () => {
+    ['wiz-income', 'wiz-expenses', 'wiz-debt', 'wiz-amount', 'wiz-duration'].forEach((id) => {
+      const field = document.getElementById(id) as HTMLInputElement | null;
+      if (!field || field.dataset.cfWizardBound === '1') {
+        return;
+      }
+      field.dataset.cfWizardBound = '1';
+      field.addEventListener('input', () => app.updateWizardCalculation?.());
+    });
+  };
+
+  const applyLoanModalBranding = () => {
+    const role = getUiSession()?.role ?? app.currentRole;
+    const title = document.getElementById('modal-loan-app-title');
+    const badge = document.getElementById('modal-loan-app-badge');
+    const subtitle = document.getElementById('modal-loan-app-subtitle');
+    const submit = document.getElementById('modal-loan-app-submit-btn');
+    const header = document.getElementById('modal-loan-app-header') as HTMLElement | null;
+
+    if (role === 'CREDIT_OFFICER') {
+      if (title) title.textContent = 'Enregistrer une Demande de Prêt (Guichet)';
+      if (badge) badge.textContent = 'Agent de Crédit';
+      if (subtitle) subtitle.textContent = 'Saisie de dossier pour un sociétaire, vérification KYC & transmission au pôle risque';
+      if (submit) submit.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Enregistrer & Transmettre au Pôle Risque';
+      if (header) header.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
+      return;
+    }
+
+    if (title) title.textContent = 'Faire une Demande de Prêt CreditFast';
+    if (badge) badge.textContent = 'Parcours 6 Étapes';
+    if (subtitle) subtitle.textContent = 'Instruction rapide, calcul transparent de votre mensualité & transmission sécurisée à votre conseiller';
+    if (submit) submit.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Confirmer & Soumettre ma Demande';
+    if (header) header.style.background = 'linear-gradient(135deg, var(--cif-emerald-600, #518e45), var(--cif-emerald-700, #1b4332))';
+  };
+
   app.openUploadDocumentModal = () => showBackdrop('modal-upload-document', true);
   app.closeUploadDocumentModal = () => showBackdrop('modal-upload-document', false);
   app.closeClientRequestDrawer = () => showBackdrop('client-request-drawer-backdrop', false);
@@ -166,18 +224,114 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   if (!capturedOpenLoan && app.openNewLoanModal) {
     capturedOpenLoan = app.openNewLoanModal.bind(app);
   }
-  app.openNewLoanModal = (prefill) => {
-    capturedOpenLoan?.(prefill);
-    const income = document.getElementById('wiz-income') as HTMLInputElement | null;
-    const expenses = document.getElementById('wiz-expenses') as HTMLInputElement | null;
-    if (income && prefill?.income) {
-      income.value = String(prefill.income);
+  app.setModalWizardStep = (step) => {
+    const nextStep = Math.max(1, Math.min(6, Number(step) || 1));
+    document.querySelectorAll<HTMLElement>('.modal-wizard-step-content').forEach((node) => {
+      node.style.display = 'none';
+    });
+    const activeContent = document.getElementById(`modal-wizard-step-${nextStep}`);
+    if (activeContent) {
+      activeContent.style.display = 'block';
     }
-    if (expenses && prefill?.expenses) {
-      expenses.value = String(prefill.expenses);
-    }
-    void import('@/features/client/persistFiche').then(({ hydrateWizardFromProfile }) => hydrateWizardFromProfile());
+    document.querySelectorAll<HTMLElement>('[id^="modal-wstep-"]').forEach((node, index) => {
+      const current = index + 1;
+      node.classList.toggle('active', current === nextStep);
+      node.classList.toggle('completed', current < nextStep);
+    });
+    app.updateWizardCalculation?.();
   };
+  app.updateWizardCalculation = () => {
+    const income = fieldNumber('wiz-income', 0);
+    const expenses = fieldNumber('wiz-expenses', 0);
+    const debt = fieldNumber('wiz-debt', 0);
+    const amount = fieldNumber('wiz-amount', 2500000);
+    const months = Math.max(1, fieldNumber('wiz-duration', 12));
+    const principal = Math.max(0, amount);
+    const totalRate = Math.max(0.06, Math.min(0.22, months * 0.012));
+    const installment = principal > 0 ? Math.ceil((principal * (1 + totalRate)) / months) : 0;
+    const disposable = income - expenses - debt;
+    const restAfterPayment = disposable - installment;
+    const sufficient = installment > 0 && disposable > 0 && restAfterPayment >= Math.max(0, income * 0.2);
+
+    const disposableNode = document.getElementById('wiz-calc-disposable');
+    const installmentNode = document.getElementById('wiz-calc-installment');
+    const statusNode = document.getElementById('wiz-calc-status');
+    if (disposableNode) {
+      disposableNode.textContent = disposable > 0 ? formatLocalFcfa(disposable) : '—';
+    }
+    if (installmentNode) {
+      installmentNode.textContent = installment > 0 ? formatLocalFcfa(installment) : '—';
+    }
+    if (statusNode) {
+      statusNode.className = `badge ${sufficient ? 'badge-capacity-sufficient' : 'badge-capacity-insufficient'}`;
+      statusNode.textContent = sufficient ? 'Mensualité compatible' : 'À revoir';
+    }
+  };
+  app.handleWizardProfileModeChange = (mode) => {
+    const isCold = mode === 'COLD_START';
+    const standard = document.getElementById('modal-label-profile-standard') as HTMLElement | null;
+    const cold = document.getElementById('modal-label-profile-coldstart') as HTMLElement | null;
+    const indicator = document.getElementById('modal-wiz-cold-start-indicator');
+    const info = document.getElementById('modal-wiz-cold-start-info');
+    if (standard && cold) {
+      standard.style.borderColor = isCold ? 'var(--border-color)' : 'var(--primary-600)';
+      standard.style.background = isCold ? 'var(--bg-surface)' : 'var(--cif-primary-50, #eff6ff)';
+      cold.style.borderColor = isCold ? 'var(--primary-600)' : 'var(--border-color)';
+      cold.style.background = isCold ? 'var(--cif-emerald-50, #eef4ee)' : 'var(--bg-surface)';
+    }
+    if (indicator) {
+      indicator.className = isCold ? 'badge badge-warning' : 'badge badge-submitted';
+      indicator.innerHTML = isCold
+        ? '<i class="fas fa-check"></i> Mode Cold Start Activé'
+        : '<i class="fas fa-landmark"></i> Membre existant';
+    }
+    if (info) {
+      info.innerHTML = isCold
+        ? '<i class="fas fa-balance-scale text-emerald mr-1"></i> <strong>Modèle d\\\'Inclusion CreditFast:</strong> L\\\'absence d\\\'historique n\\\'est pas pénalisée. Les pondérations s\\\'adaptent à votre capacité réelle de remboursement et à vos garanties de proximité.'
+        : '<i class="fas fa-piggy-bank text-primary mr-1"></i> <strong>Historique disponible:</strong> Le score peut tenir compte de l\\\'épargne, des remboursements passés et de la stabilité du compte.';
+    }
+  };
+  app.initClientWizard = () => {
+    ensureWizardCalculationListeners();
+    app.setModalWizardStep?.(1);
+  };
+  let checkingSavings = false;
+  app.openNewLoanModal = async (prefill) => {
+    if (checkingSavings) return false;
+    if (getUiSession()?.role === 'client') {
+      checkingSavings = true;
+      const token = getUiSession()?.token;
+      try {
+        const profile = await fetchClientProfile();
+        if (getUiSession()?.token !== token) return false;
+        if (!hasActiveSavingsAccount(profile)) {
+          window.dispatchEvent(new Event('creditfast:open-savings-membership'));
+          return false;
+        }
+      } catch {
+        toast.danger('Impossible de vérifier votre compte épargne. Réessayez avant de faire une demande de prêt.');
+        return false;
+      } finally { checkingSavings = false; }
+    }
+    const modal = document.getElementById('modal-loan-application');
+    if (!modal) {
+      toast.warning('Le formulaire de demande n’est pas encore chargé.');
+      return false;
+    }
+    ensureWizardCalculationListeners();
+    applyLoanModalBranding();
+    app.setModalWizardStep?.(1);
+    setFieldValue('wiz-amount', prefill?.amount);
+    setFieldValue('wiz-duration', prefill?.duration);
+    setFieldValue('wiz-purpose', prefill?.purpose);
+    setFieldValue('wiz-income', prefill?.income);
+    setFieldValue('wiz-expenses', prefill?.expenses);
+    showBackdrop('modal-loan-application', true);
+    app.updateWizardCalculation?.();
+    await import('@/features/client/persistFiche').then(({ hydrateWizardFromProfile }) => hydrateWizardFromProfile());
+    return true;
+  };
+  app.closeNewLoanModal = () => showBackdrop('modal-loan-application', false);
   app.updateCompactEstimator = () => {
     void import('@/features/client/runSimulation').then(({ scheduleCompactEstimator }) => scheduleCompactEstimator());
   };
@@ -228,6 +382,15 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   };
   app.openComplementsDrawer = (identifier) => {
     void import('@/features/agent/fillAgentDrawers').then(({ fillAndOpenComplementsDrawer }) => fillAndOpenComplementsDrawer(identifier));
+  };
+  app.triggerReminderFromDrawer = () => {
+    void import('@/features/agent/fillAgentDrawers').then(({ triggerReminderFromDrawer }) => triggerReminderFromDrawer());
+  };
+  app.markDocReceivedFromDrawer = () => {
+    void import('@/features/agent/fillAgentDrawers').then(({ markDocReceivedFromDrawer }) => markDocReceivedFromDrawer());
+  };
+  app.triggerDrawerFileUpload = () => {
+    void import('@/features/agent/fillAgentDrawers').then(({ triggerDrawerFileUpload }) => triggerDrawerFileUpload());
   };
   app.requestComplementsFromAgentDrawer = () => {
     void import('@/features/agent/fillAgentDrawers').then(({ requestComplementsFromAgentDrawer }) => requestComplementsFromAgentDrawer());
@@ -458,13 +621,14 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
       const { isApiError } = await import('@/api/errors');
       try {
         const draft = await loadDraftForWizard(id);
-        capturedOpenLoan?.({
+        const opened = await app.openNewLoanModal?.({
           amount: draft.requested_amount,
           duration: draft.duration_months,
           purpose: draft.purpose,
           income: draft.declared_monthly_income,
           expenses: draft.declared_monthly_expenses,
         });
+        if (opened === false) return;
         await hydrateWizardFromProfile(draft);
         toast.info('Brouillon repris. Complétez puis envoyez, ou enregistrez à nouveau.');
       } catch (error) {

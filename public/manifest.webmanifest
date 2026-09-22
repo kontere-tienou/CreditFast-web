@@ -1,0 +1,37 @@
+{
+  "name": "CreditFast",
+  "short_name": "CreditFast",
+  "description": "Scoring microcrédit, KYC, pièces justificatives et suivi des relances.",
+  "lang": "fr",
+  "start_url": "/app/client/documents",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#1b4332",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/images/logo/faticon.png",
+      "sizes": "270x271",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Joindre une pièce",
+      "short_name": "Pièces",
+      "description": "Déposer KYC ou justificatif demandé.",
+      "url": "/app/client/documents",
+      "icons": [{ "src": "/images/logo/faticon.png", "sizes": "270x271", "type": "image/png" }]
+    },
+    {
+      "name": "Suivre mes demandes",
+      "short_name": "Demandes",
+      "description": "Voir le statut du dossier et les compléments.",
+      "url": "/app/client/requests",
+      "icons": [{ "src": "/images/logo/faticon.png", "sizes": "270x271", "type": "image/png" }]
+    }
+  ]
+}

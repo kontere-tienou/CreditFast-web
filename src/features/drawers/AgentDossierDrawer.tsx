@@ -34,6 +34,30 @@ export function AgentDossierDrawer() {
         </div>
       </div>
 
+      <div className="drawer-panel">
+        <div className="drawer-panel-header">
+          <h4 className="drawer-panel-title">
+            <i className="fas fa-timeline text-primary"></i> Parcours du dossier
+          </h4>
+          <span id="agent-drawer-timeline-badge" className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>Suivi</span>
+        </div>
+        <div id="agent-drawer-workflow-timeline" className="drawer-timeline">
+          {/* Dynamic timeline */}
+        </div>
+      </div>
+
+      <div className="drawer-panel">
+        <div className="drawer-panel-header">
+          <h4 className="drawer-panel-title">
+            <i className="fas fa-clock-rotate-left text-primary"></i> Journal d'audit du dossier
+          </h4>
+          <span id="agent-drawer-audit-badge" className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>Traçabilité</span>
+        </div>
+        <div id="agent-drawer-audit-trail" className="audit-trail">
+          {/* Dynamic audit trail */}
+        </div>
+      </div>
+
       {/* 2. Borrower & Contact Panel */}
       <div className="drawer-panel">
         <div className="drawer-panel-header">
@@ -164,13 +188,13 @@ export function AgentDossierDrawer() {
         </div>
       </div>
 
-      {/* 6. Scoring V2 & Recommendation Panel */}
+      {/* 6. Decision scoring */}
       <div className="drawer-panel">
         <div className="drawer-panel-header">
           <h4 className="drawer-panel-title">
-            <i className="fas fa-chart-line text-purple"></i> Score d’aide à la décision
+            <i className="fas fa-chart-line text-purple"></i> Décision scoring
           </h4>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
             <span id="agent-drawer-score-val" style={{ fontSize: "1.25rem", fontWeight: 800, color: "#518e45", fontFamily: "var(--font-family-code)" }}>—</span>
             <span style={{ fontSize: "0.75rem", color: "var(--text-subtle)" }}>/100</span>
           </div>
@@ -183,6 +207,26 @@ export function AgentDossierDrawer() {
 
         <div style={{ height: "6px", background: "var(--bg-surface-secondary)", borderRadius: "var(--radius-full)", overflow: "hidden", border: "1px solid var(--border-color)" }}>
           <div id="agent-drawer-score-progress" style={{ width: "0%", height: "100%", background: "linear-gradient(90deg, #518e45, #518e45)", borderRadius: "var(--radius-full)" }}></div>
+        </div>
+
+        <div className="decision-next-action">
+          <span className="decision-next-action-label">Prochaine action</span>
+          <strong id="agent-drawer-next-action">—</strong>
+        </div>
+
+        <p id="agent-drawer-decision-summary" className="decision-summary">
+          Score non calculé. Lancez l’analyse 360° pour obtenir une recommandation.
+        </p>
+
+        <div id="agent-drawer-decision-checklist" className="decision-checklist">
+          {/* Dynamic checklist */}
+        </div>
+
+        <div className="decision-factor-block">
+          <div className="decision-factor-title">Facteurs lus par le moteur</div>
+          <div id="agent-drawer-score-factors" className="decision-factor-list">
+            {/* Dynamic scoring factors */}
+          </div>
         </div>
       </div>
     </div>

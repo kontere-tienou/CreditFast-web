@@ -24,7 +24,7 @@ export function useAnalystWorkspace() {
   const [signals, setSignals] = useState<AnalystSignal[]>([]);
 
   const reloadSignals = useCallback(async (rows: CreditRequest[]) => {
-    const fromApi = await listAnalystAnomalies();
+    const fromApi = await listAnalystAnomalies(rows);
     if (fromApi.length) {
       const mapped = fromApi.map((item) => {
         const request = rows.find((row) => row.id === item.credit_request_id);

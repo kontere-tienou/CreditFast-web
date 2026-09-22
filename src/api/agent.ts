@@ -156,7 +156,7 @@ export async function storeClientSavingsHistory(clientId: number, body: StoreSav
 
 export async function listAgentClientKycDocuments(clientId: number) {
   try {
-    const payload = await apiJson<unknown>(`/agent/clients/${clientId}/kyc-documents`);
+    const payload = await apiJson<unknown>(`/agent/clients/${clientId}/kyc`);
     const rows = unwrapCollection<KycDocument>(payload);
     if (rows.length) {
       return rows;

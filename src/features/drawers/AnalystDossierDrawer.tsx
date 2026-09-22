@@ -42,6 +42,43 @@ export function AnalystDossierDrawer() {
               </div>
             </div>
           </div>
+          <div className="decision-next-action" style={{ marginTop: "0.85rem", textAlign: "left" }}>
+            <span className="decision-next-action-label">Prochaine action</span>
+            <strong id="analyst-drawer-next-action">—</strong>
+          </div>
+          <p id="analyst-drawer-decision-summary" className="decision-summary" style={{ textAlign: "left", marginBottom: 0 }}>
+            Analyse non calculée.
+          </p>
+        </div>
+
+        <div className="drawer-panel">
+          <div className="drawer-panel-header">
+            <h4 className="drawer-panel-title"><i className="fas fa-timeline text-primary mr-1"></i> Parcours du dossier</h4>
+            <span id="analyst-drawer-timeline-badge" className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>Instruction</span>
+          </div>
+          <div id="analyst-drawer-workflow-timeline" className="drawer-timeline">
+            {/* Dynamic timeline */}
+          </div>
+        </div>
+
+        <div className="drawer-panel">
+          <div className="drawer-panel-header">
+            <h4 className="drawer-panel-title"><i className="fas fa-clock-rotate-left text-primary mr-1"></i> Journal d'audit du dossier</h4>
+            <span id="analyst-drawer-audit-badge" className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>Traçabilité</span>
+          </div>
+          <div id="analyst-drawer-audit-trail" className="audit-trail">
+            {/* Dynamic audit trail */}
+          </div>
+        </div>
+
+        <div className="drawer-panel">
+          <div className="drawer-panel-header">
+            <h4 className="drawer-panel-title"><i className="fas fa-list-check text-emerald mr-1"></i> Checklist de décision</h4>
+            <span id="analyst-drawer-readiness-badge" className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>En revue</span>
+          </div>
+          <div id="analyst-drawer-decision-checklist" className="decision-checklist">
+            {/* Dynamic checklist */}
+          </div>
         </div>
 
         {/* Section 1 : Emprunteur & Capacité Financière Nette */}

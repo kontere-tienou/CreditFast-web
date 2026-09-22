@@ -335,6 +335,16 @@ export function CommitteeOverlays() {
           </div>
         </div>
       </div> */}
+
+      <div className="drawer-panel">
+        <div className="drawer-panel-header">
+          <h4 className="drawer-panel-title"><i className="fas fa-clock-rotate-left text-primary mr-1"></i> Journal d'audit du dossier</h4>
+          <span id="com-drawer-audit-badge" className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>Avant vote</span>
+        </div>
+        <div id="com-drawer-audit-trail" className="audit-trail">
+          {/* Dynamic audit trail */}
+        </div>
+      </div>
     </div>
 
     {/* Sidedrawer Footer Actions */}

@@ -44,28 +44,28 @@ export function ComplementsDrawer() {
           </div>
         </div>
 
-        {/* Section 2 : Détail du Document & Motif du Rejet / Incomplétude */}
+        {/* Section 2 : Détail du blocage et action attendue */}
         <div className="drawer-panel">
           <div className="drawer-panel-header">
-            <h4 className="drawer-panel-title"><i className="fas fa-file-circle-exclamation text-danger mr-1"></i> Document & Motif de Rejet</h4>
-            <span id="comp-drawer-doc-type" className="badge badge-submitted" style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem" }}>FACTURE_PROFORMA</span>
+            <h4 className="drawer-panel-title"><i className="fas fa-file-circle-exclamation text-danger mr-1"></i> Blocage & Action Attendue</h4>
+            <span id="comp-drawer-doc-type" className="badge badge-submitted" style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem" }}>PIECE</span>
           </div>
           <div style={{ marginBottom: "0.65rem" }}>
             <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.25rem" }} id="comp-drawer-doc-name">
-              Nouvelle Facture Proforma Quincaillerie (&lt; 30 jours)
+              Complément à fournir
             </div>
             <div style={{ background: "rgba(239, 68, 68, 0.08)", borderLeft: "3px solid #ef4444", padding: "0.6rem 0.8rem", borderRadius: "0 var(--radius-sm) var(--radius-sm) 0", fontSize: "0.76rem", color: "#991b1b", lineHeight: 1.45 }} id="comp-drawer-reason">
-              Date ou montant illisibles, ou pièce trop ancienne. Joignez une pièce récente et lisible.
+              Le motif sera renseigné depuis le dossier.
             </div>
           </div>
           <div style={{ background: "var(--bg-body)", padding: "0.65rem 0.85rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", fontSize: "0.74rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
               <span style={{ color: "var(--text-muted)" }}>Impact sur le Scoring :</span>
-              <strong style={{ color: "#b91c1c" }}>Blocage Étape Comité (-15 pts)</strong>
+              <strong id="comp-drawer-impact" style={{ color: "#b91c1c", textAlign: "right" }}>Score documentaire incomplet</strong>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--text-muted)" }}>Délai de conformité UEMOA :</span>
-              <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>48 heures ouvrées</span>
+              <span style={{ color: "var(--text-muted)" }}>Délai de régularisation :</span>
+              <span id="comp-drawer-deadline" style={{ fontWeight: 600, color: "var(--text-primary)", textAlign: "right" }}>48 heures ouvrées</span>
             </div>
           </div>
         </div>
@@ -74,29 +74,10 @@ export function ComplementsDrawer() {
         <div className="drawer-panel">
           <div className="drawer-panel-header">
             <h4 className="drawer-panel-title"><i className="fas fa-paper-plane text-info mr-1"></i> Journal des Relances</h4>
-            <span id="comp-drawer-reminders-count" className="badge badge-submitted">2 Relances envoyées</span>
+            <span id="comp-drawer-reminders-count" className="badge badge-submitted">0 relance</span>
           </div>
-          <div id="comp-drawer-timeline" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.75rem" }}>
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start", background: "var(--bg-body)", padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
-              <i className="fas fa-comment-sms text-emerald" style={{ marginTop: "3px" }}></i>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, color: "var(--text-primary)", display: "flex", justifyContent: "space-between" }}>
-                  <span>SMS Automatique de Notification</span>
-                  <span style={{ fontSize: "0.68rem", color: "var(--text-subtle)" }}>Il y a 2 jours</span>
-                </div>
-                <p style={{ margin: "2px 0 0", color: "var(--text-muted)", fontSize: "0.72rem" }}>« CreditFast : Merci de téléverser votre facture proforma actualisée via votre espace client ou en agence. »</p>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start", background: "var(--bg-body)", padding: "0.5rem 0.75rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
-              <i className="fab fa-whatsapp text-emerald" style={{ marginTop: "3px" }}></i>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, color: "var(--text-primary)", display: "flex", justifyContent: "space-between" }}>
-                  <span>Message Direct WhatsApp Agent</span>
-                  <span style={{ fontSize: "0.68rem", color: "var(--text-subtle)" }}>Hier à 11h20</span>
-                </div>
-                <p style={{ margin: "2px 0 0", color: "var(--text-muted)", fontSize: "0.72rem" }}>Lien direct de dépôt sécurisé envoyé sur le numéro de l'emprunteur.</p>
-              </div>
-            </div>
+          <div id="comp-drawer-timeline" className="reminder-journal">
+            <div className="reminder-empty">Aucune relance tracée pour ce dossier.</div>
           </div>
         </div>
 
@@ -107,8 +88,8 @@ export function ComplementsDrawer() {
           </div>
           <div style={{ border: "2px dashed var(--border-color)", borderRadius: "var(--radius-md)", padding: "1rem", textAlign: "center", background: "var(--bg-body)", cursor: "pointer" }} onClick={() => callApp("triggerDrawerFileUpload")}>
             <i className="fas fa-file-circle-plus text-primary" style={{ fontSize: "1.6rem", marginBottom: "0.35rem", display: "block" }}></i>
-            <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-primary)", display: "block" }}>Glissez le document ou cliquez pour scanner</span>
-            <span style={{ fontSize: "0.7rem", color: "var(--text-subtle)" }}>Formats acceptés : PDF, JPG, PNG (Max 10 Mo)</span>
+            <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-primary)", display: "block" }}>Scan agence / dépôt GED</span>
+            <span style={{ fontSize: "0.7rem", color: "var(--text-subtle)" }}>Prévu pour le mobile agent et la GED connectée</span>
           </div>
         </div>
       </div>
@@ -118,7 +99,7 @@ export function ComplementsDrawer() {
         <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("closeComplementsDrawer")}>Fermer</button>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button type="button" id="comp-drawer-btn-remind" className="btn btn-secondary btn-sm" onClick={() => callApp("triggerReminderFromDrawer")}>
-            <i className="fas fa-paper-plane text-primary mr-1"></i> Relancer SMS / WhatsApp
+            <i className="fas fa-paper-plane text-primary mr-1"></i> Relancer client
           </button>
           <button type="button" id="comp-drawer-btn-validate" className="btn btn-primary btn-sm" onClick={() => callApp("markDocReceivedFromDrawer")}>
             <i className="fas fa-check mr-1"></i> Valider & Conforme

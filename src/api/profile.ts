@@ -2,6 +2,7 @@ import { apiBlob, apiJson } from './client';
 import { unwrapCollection } from './admin';
 import { isApiError } from './errors';
 import type { ApiUser } from './types';
+import { isActiveSavingsAccount } from '@/features/savings/accountPolicy';
 
 export type FinancialAccount = {
   id?: number;
@@ -28,6 +29,11 @@ export type SavingsHistory = {
 export type ClientProfile = {
   id?: number;
   client_number?: string;
+  client_type?: 'PHYSICAL_PERSON' | 'LEGAL_ENTITY' | string | null;
+  company_name?: string | null;
+  trade_name?: string | null;
+  registration_number?: string | null;
+  legal_form?: string | null;
   kyc_status?: string;
   city?: string | null;
   residential_zone?: string | null;
@@ -126,6 +132,11 @@ export function savingsBalanceFromProfile(profile: ClientProfile | null) {
   const histories = profile?.savings_histories?.length ? profile.savings_histories : profile?.savings_history ?? [];
   const latest = [...histories].sort((a, b) => String(b.period_end ?? '').localeCompare(String(a.period_end ?? '')))[0];
   return latest?.closing_balance ?? latest?.average_balance;
+}
+
+export function hasActiveSavingsAccount(profile: ClientProfile | null) {
+  const accounts = profile?.financial_accounts ?? [];
+  return accounts.some(isActiveSavingsAccount);
 }
 
 export async function fetchKycDocumentFile(documentId: number) {

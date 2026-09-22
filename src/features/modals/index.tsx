@@ -9,6 +9,7 @@ import { SettingsModal } from './SettingsModal';
 import { SuccessAnimationModal } from './SuccessAnimationModal';
 import { LoanApplicationModal } from './LoanApplicationModal';
 import { UploadDocumentModal } from './UploadDocumentModal';
+import { SavingsMembershipModal } from '@/features/savings/SavingsMembershipModal';
 
 export function LegacyDialogs() {
   return (
@@ -23,6 +24,7 @@ export function LegacyDialogs() {
       <SettingsModal />
       <SuccessAnimationModal />
       <LoanApplicationModal />
+      <SavingsMembershipModal />
       <UploadDocumentModal />
     </>
   );
