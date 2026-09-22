@@ -1,0 +1,2662 @@
+{
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/admin/users",
+      "summary": "[Lister] Les utilisateurs internes",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 210,
+          "fn": "listAdminUsers",
+          "method": "GET",
+          "path": "/admin/users",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminUsersPage.tsx",
+              "line": 90
+            },
+            {
+              "file": "src/features/admin/dashboardData.ts",
+              "line": 226
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users",
+      "summary": "[Créer] Un compte interne",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 231,
+          "fn": "createAdminUser",
+          "method": "POST",
+          "path": "/admin/users",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminUserWizardModal.tsx",
+              "line": 80
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users/{user}",
+      "summary": "[Lire] Consulter un utilisateur",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 220,
+          "fn": "getAdminUser",
+          "method": "GET",
+          "path": "/admin/users/{}",
+          "transport": "apiJson",
+          "usages": []
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/{user}",
+      "summary": "[Modifier] Un compte interne",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 238,
+          "fn": "updateAdminUser",
+          "method": "PUT",
+          "path": "/admin/users/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/admin.ts",
+              "line": 249
+            },
+            {
+              "file": "src/features/admin/AdminUsersPage.tsx",
+              "line": 268
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 279
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/users/{user}",
+      "summary": "[Supprimer] Désactiver un compte",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 245,
+          "fn": "deactivateAdminUser",
+          "method": "DELETE",
+          "path": "/admin/users/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminUsersPage.tsx",
+              "line": 216
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/{user}/password",
+      "summary": "[Modifier] Réinitialiser le mot de passe d’un utilisateur",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 258,
+          "fn": "resetAdminUserPassword",
+          "method": "PUT",
+          "path": "/admin/users/{}/password",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminUsersPage.tsx",
+              "line": 315
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/scoring-models",
+      "summary": "[Lister] Les modèles de scoring",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 265,
+          "fn": "listScoringModels",
+          "method": "GET",
+          "path": "/admin/scoring-models",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminScoringPage.tsx",
+              "line": 54
+            },
+            {
+              "file": "src/features/admin/dashboardData.ts",
+              "line": 227
+            },
+            {
+              "file": "src/features/analyst/AnalystScoringPage.tsx",
+              "line": 38
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/scoring-models",
+      "summary": "[Créer] Un modèle de scoring",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 276,
+          "fn": "createScoringModel",
+          "method": "POST",
+          "path": "/admin/scoring-models",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminScoringPage.tsx",
+              "line": 85
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/scoring-models/{scoringModel}/status",
+      "summary": "[Modifier] Le statut d’un modèle",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 283,
+          "fn": "updateScoringModelStatus",
+          "method": "POST",
+          "path": "/admin/scoring-models/{}/status",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminScoringPage.tsx",
+              "line": 138
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/scoring-models/{scoringModel}/rules",
+      "summary": "[Créer] Une règle de modèle",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 318,
+          "fn": "createScoringRule",
+          "method": "POST",
+          "path": "/admin/scoring-models/{}/rules",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminScoringPage.tsx",
+              "line": 115
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/audit-logs",
+      "summary": "[Lister] Le journal d’audit",
+      "tags": [
+        "Administration"
+      ],
+      "matches": [
+        {
+          "file": "src/api/admin.ts",
+          "line": 290,
+          "fn": "listAdminAuditLogs",
+          "method": "GET",
+          "path": "/admin/audit-logs",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminAuditPage.tsx",
+              "line": 51
+            },
+            {
+              "file": "src/features/admin/dashboardData.ts",
+              "line": 228
+            },
+            {
+              "file": "src/features/shared/AuditLogsPage.tsx",
+              "line": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/analyst/requests",
+      "summary": "[Lister] La file d’analyse",
+      "tags": [
+        "Analyste"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 241,
+          "fn": "listAnalystRequests",
+          "method": "GET",
+          "path": "/analyst/requests",
+          "transport": "listPaged",
+          "usages": [
+            {
+              "file": "src/api/credit.ts",
+              "line": 712
+            },
+            {
+              "file": "src/features/admin/dashboardData.ts",
+              "line": 230
+            },
+            {
+              "file": "src/features/workflow/useCreditRequests.ts",
+              "line": 26
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/analyst/requests/{creditRequest}/review",
+      "summary": "Enregistrer la revue analyste",
+      "tags": [
+        "Analyste"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 762,
+          "fn": "submitAnalystReview",
+          "method": "POST",
+          "path": "/analyst/requests/{}/review",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 718
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1834
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/analyst/requests/{creditRequest}/anomalies",
+      "summary": "[Lister] Les anomalies d’une demande",
+      "tags": [
+        "Analyste"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 716,
+          "fn": "listAnalystAnomalies",
+          "method": "GET",
+          "path": "/analyst/requests/{}/anomalies",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/analyst/useAnalystWorkspace.ts",
+              "line": 27
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/analyst/anomalies/{anomaly}/resolve",
+      "summary": "Mettre à jour un point à vérifier",
+      "tags": [
+        "Analyste"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 733,
+          "fn": "resolveAnomaly",
+          "method": "POST",
+          "path": "/analyst/anomalies/{}/resolve",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1945
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/analyst/requests/{creditRequest}/human-validation",
+      "summary": "Enregistrer une validation humaine",
+      "tags": [
+        "Analyste"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 748,
+          "fn": "submitHumanValidation",
+          "method": "POST",
+          "path": "/analyst/requests/{}/human-validation",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1585
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1866
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "summary": "[Créer] Un compte client",
+      "tags": [
+        "Authentification client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/auth.ts",
+          "line": 131,
+          "fn": "registerClient",
+          "method": "POST",
+          "path": "/auth/register",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/auth/AuthPage.tsx",
+              "line": 178
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/client/login",
+      "summary": "Connexion client",
+      "tags": [
+        "Authentification client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/auth.ts",
+          "line": 86,
+          "fn": "loginWithCredentials",
+          "method": "POST",
+          "path": "/auth/client/login",
+          "transport": "postLogin",
+          "usages": [
+            {
+              "file": "src/features/auth/AuthPage.tsx",
+              "line": 121
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/staff/login",
+      "summary": "Connexion interne",
+      "tags": [
+        "Authentification interne"
+      ],
+      "matches": [
+        {
+          "file": "src/api/auth.ts",
+          "line": 85,
+          "fn": "loginWithCredentials",
+          "method": "POST",
+          "path": "/auth/staff/login",
+          "transport": "postLogin",
+          "usages": [
+            {
+              "file": "src/features/auth/AuthPage.tsx",
+              "line": 121
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "summary": "Déconnexion",
+      "tags": [
+        "Session"
+      ],
+      "matches": [
+        {
+          "file": "src/api/auth.ts",
+          "line": 164,
+          "fn": "logoutFromApi",
+          "method": "POST",
+          "path": "/auth/logout",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 579
+            },
+            {
+              "file": "src/shared/layout/AppShell.tsx",
+              "line": 144
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "summary": "[Lire] Le profil de session",
+      "tags": [
+        "Session"
+      ],
+      "matches": [
+        {
+          "file": "src/api/auth.ts",
+          "line": 142,
+          "fn": "fetchCurrentUser",
+          "method": "GET",
+          "path": "/auth/me",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 117
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 116
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/password",
+      "summary": "[Modifier] Son mot de passe",
+      "tags": [
+        "Session"
+      ],
+      "matches": [
+        {
+          "file": "src/api/auth.ts",
+          "line": 154,
+          "fn": "updateOwnPassword",
+          "method": "PUT",
+          "path": "/auth/password",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 205
+            },
+            {
+              "file": "src/features/modals/ChangePasswordModal.tsx",
+              "line": 45
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 237
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile",
+      "summary": "[Lire] Consulter son profil client",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 107,
+          "fn": "fetchClientProfile",
+          "method": "GET",
+          "path": "/profile",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/savings.ts",
+              "line": 50
+            },
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 307
+            },
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 132
+            },
+            {
+              "file": "src/features/client/ClientDashboardPage.tsx",
+              "line": 24
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 106
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 138
+            },
+            {
+              "file": "src/features/savings/ClientSavingsPage.tsx",
+              "line": 21
+            },
+            {
+              "file": "src/features/savings/SavingsMembershipModal.tsx",
+              "line": 65
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile",
+      "summary": "[Modifier] Mettre à jour le profil",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 227,
+          "fn": "updateClientProfile",
+          "method": "PUT",
+          "path": "/profile",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 215
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 54
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 245
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile/activities",
+      "summary": "[Lister] Les activités économiques",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 272,
+          "fn": "listEconomicActivities",
+          "method": "GET",
+          "path": "/profile/activities",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 134
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 108
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 140
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profile/activities",
+      "summary": "[Créer] Enregistrer une activité économique",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 289,
+          "fn": "saveEconomicActivity",
+          "method": "POST",
+          "path": "/profile/activities",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 223
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 66
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 253
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile/financial-profile",
+      "summary": "[Lire] Consulter le profil financier",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 240,
+          "fn": "fetchFinancialProfile",
+          "method": "GET",
+          "path": "/profile/financial-profile",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 133
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 107
+            },
+            {
+              "file": "src/features/client/runSimulation.ts",
+              "line": 111
+            },
+            {
+              "file": "src/features/client/runSimulation.ts",
+              "line": 251
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 139
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile/financial-profile",
+      "summary": "[Modifier] Le profil financier",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 256,
+          "fn": "saveFinancialProfile",
+          "method": "PUT",
+          "path": "/profile/financial-profile",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 239
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 83
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 269
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profile/financial-profile",
+      "summary": "[Créer / Modifier] Enregistrer le profil financier",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 264,
+          "fn": "saveFinancialProfile",
+          "method": "POST",
+          "path": "/profile/financial-profile",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 239
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 83
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 269
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile/kyc-documents",
+      "summary": "[Lister] Les pièces d’identité",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 301,
+          "fn": "listKycDocuments",
+          "method": "GET",
+          "path": "/profile/kyc-documents",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/ClientDocumentsPage.tsx",
+              "line": 112
+            },
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 348
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profile/kyc-documents",
+      "summary": "[Créer] Déposer une pièce d’identité",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 346,
+          "fn": "uploadKycDocument",
+          "method": "POST",
+          "path": "/profile/kyc-documents",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 514
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile/activities/{activity}",
+      "summary": "[Lire] Consulter une activité",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 279,
+          "fn": "getEconomicActivity",
+          "method": "GET",
+          "path": "/profile/activities/{}",
+          "transport": "apiJson",
+          "usages": []
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile/activities/{activity}",
+      "summary": "[Modifier] Une activité économique",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 285,
+          "fn": "saveEconomicActivity",
+          "method": "PUT",
+          "path": "/profile/activities/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 223
+            },
+            {
+              "file": "src/features/client/persistFiche.ts",
+              "line": 66
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 253
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/profile/activities/{activity}",
+      "summary": "[Supprimer] Une activité économique",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 297,
+          "fn": "deleteEconomicActivity",
+          "method": "DELETE",
+          "path": "/profile/activities/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 91
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile/kyc-documents/{kycDocument}",
+      "summary": "[Lire] Consulter une pièce d’identité",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 306,
+          "fn": "getKycDocument",
+          "method": "GET",
+          "path": "/profile/kyc-documents/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 344
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/profile/kyc-documents/{kycDocument}",
+      "summary": "[Supprimer] Une pièce d’identité en attente",
+      "tags": [
+        "Profil client"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 336,
+          "fn": "deleteKycDocument",
+          "method": "DELETE",
+          "path": "/profile/kyc-documents/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/ClientDocumentsPage.tsx",
+              "line": 95
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/committee/requests",
+      "summary": "[Lister] La file du comité",
+      "tags": [
+        "Comité"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 245,
+          "fn": "listCommitteeRequests",
+          "method": "GET",
+          "path": "/committee/requests",
+          "transport": "listPaged",
+          "usages": [
+            {
+              "file": "src/features/admin/dashboardData.ts",
+              "line": 231
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 268
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 469
+            },
+            {
+              "file": "src/features/workflow/useCreditRequests.ts",
+              "line": 28
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/committee/requests/{creditRequest}/decide",
+      "summary": "Décider de l’octroi",
+      "tags": [
+        "Comité"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 780,
+          "fn": "submitCommitteeDecision",
+          "method": "POST",
+          "path": "/committee/requests/{}/decide",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 528
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/requests",
+      "summary": "[Lister] La file des dossiers",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 237,
+          "fn": "listAgentRequests",
+          "method": "GET",
+          "path": "/agent/requests",
+          "transport": "listPaged",
+          "usages": [
+            {
+              "file": "src/features/admin/dashboardData.ts",
+              "line": 229
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1060
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1362
+            },
+            {
+              "file": "src/features/workflow/useCreditRequests.ts",
+              "line": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/requests/{creditRequest}/request-complements",
+      "summary": "Renvoyer le dossier au client (compléments)",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 522,
+          "fn": "requestComplements",
+          "method": "POST",
+          "path": "/agent/requests/{}/request-complements",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1347
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1549
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1840
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/requests/{creditRequest}/send-to-analysis",
+      "summary": "Transmettre le dossier à l’analyse",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 276,
+          "fn": "sendRequestToAnalysis",
+          "method": "POST",
+          "path": "/agent/requests/{}/send-to-analysis",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 681
+            },
+            {
+              "file": "src/features/workflow/CreditWorkflowBoard.tsx",
+              "line": 66
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/clients/{client}/kyc-documents/{kycDocument}/verify",
+      "summary": "Vérifier une pièce d’identité",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 179,
+          "fn": "verifyKycDocument",
+          "method": "POST",
+          "path": "/agent/clients/{}/kyc-documents/{}/verify",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1317
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1572
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/guarantees/{guarantee}/verify",
+      "summary": "Examiner une garantie",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 533,
+          "fn": "verifyGuarantee",
+          "method": "POST",
+          "path": "/agent/guarantees/{}/verify",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1451
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/clients/{client}/financial-accounts",
+      "summary": "Saisir un compte institutionnel",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 137,
+          "fn": "storeClientFinancialAccount",
+          "method": "POST",
+          "path": "/agent/clients/{}/financial-accounts",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentClientSheet.tsx",
+              "line": 145
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/financial-accounts/{financialAccount}/transactions",
+      "summary": "Enregistrer un mouvement de compte",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 144,
+          "fn": "storeAccountTransaction",
+          "method": "POST",
+          "path": "/agent/financial-accounts/{}/transactions",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentClientSheet.tsx",
+              "line": 177
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/clients/{client}/savings-history",
+      "summary": "Saisir une synthèse d’épargne",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 151,
+          "fn": "storeClientSavingsHistory",
+          "method": "POST",
+          "path": "/agent/clients/{}/savings-history",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentClientSheet.tsx",
+              "line": 209
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/clients",
+      "summary": "[Lister] Les fiches clients",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 98,
+          "fn": "listAgentClients",
+          "method": "GET",
+          "path": "/agent/clients",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/admin/AdminUsersPage.tsx",
+              "line": 118
+            },
+            {
+              "file": "src/features/agent/AgentLoansPage.tsx",
+              "line": 59
+            },
+            {
+              "file": "src/features/agent/useAgentWorkspace.ts",
+              "line": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/clients/{client}",
+      "summary": "[Lire] Consulter une fiche client",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 128,
+          "fn": "getAgentClient",
+          "method": "GET",
+          "path": "/agent/clients/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentClientSheet.tsx",
+              "line": 80
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1071
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/clients/{client}/kyc",
+      "summary": "[Lister] Les pièces KYC d’un client",
+      "tags": [
+        "Chargé de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/agent.ts",
+          "line": 159,
+          "fn": "listAgentClientKycDocuments",
+          "method": "GET",
+          "path": "/agent/clients/{}/kyc",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1024
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1131
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1623
+            },
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 341
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-products",
+      "summary": "[Lister] Les types de crédit compatibles avec le profil",
+      "tags": [
+        "Produits de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 688,
+          "fn": "listCreditProducts",
+          "method": "GET",
+          "path": "/credit-products",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/modals/LoanApplicationModal.tsx",
+              "line": 25
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests",
+      "summary": "[Lister] Les demandes de crédit",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 233,
+          "fn": "listMyCreditRequests",
+          "method": "GET",
+          "path": "/credit-requests",
+          "transport": "listPaged",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 523
+            },
+            {
+              "file": "src/features/client/ClientDocumentsPage.tsx",
+              "line": 112
+            },
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 421
+            },
+            {
+              "file": "src/features/loans/granted.ts",
+              "line": 57
+            },
+            {
+              "file": "src/features/workflow/useCreditRequests.ts",
+              "line": 29
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/credit-requests",
+      "summary": "[Créer] Une demande de crédit",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 250,
+          "fn": "createCreditRequest",
+          "method": "POST",
+          "path": "/credit-requests",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests/{creditRequest}",
+      "summary": "[Lire] Consulter une demande",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 357,
+          "fn": "getCreditRequest",
+          "method": "GET",
+          "path": "/credit-requests/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1058
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 215
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 266
+            },
+            {
+              "file": "src/features/loans/granted.ts",
+              "line": 69
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/credit-requests/{creditRequest}",
+      "summary": "[Modifier] Une demande (brouillon uniquement)",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 258,
+          "fn": "updateCreditRequest",
+          "method": "PUT",
+          "path": "/credit-requests/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 108
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/credit-requests/{creditRequest}",
+      "summary": "[Supprimer] Une demande encore en brouillon",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 266,
+          "fn": "deleteCreditRequest",
+          "method": "DELETE",
+          "path": "/credit-requests/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 656
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests/{creditRequest}/guarantees",
+      "summary": "[Lister] Les garanties du dossier",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 362,
+          "fn": "listCreditRequestGuarantees",
+          "method": "GET",
+          "path": "/credit-requests/{}/guarantees",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/credit.ts",
+              "line": 471
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1022
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1128
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1365
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1431
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1620
+            },
+            {
+              "file": "src/features/agent/useAgentWorkspace.ts",
+              "line": 21
+            },
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 451
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 86
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 100
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 426
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 448
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/credit-requests/{creditRequest}/guarantees",
+      "summary": "[Créer] Ajouter une garantie",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 419,
+          "fn": "addCreditGuarantee",
+          "method": "POST",
+          "path": "/credit-requests/{}/guarantees",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 369
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 93
+            }
+          ]
+        },
+        {
+          "file": "src/api/credit.ts",
+          "line": 425,
+          "fn": "addCreditGuarantee",
+          "method": "POST",
+          "path": "/credit-requests/{}/guarantees",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 369
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 93
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/credit-requests/{creditRequest}/submit",
+      "summary": "Transmettre la demande à l’équipe",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 271,
+          "fn": "submitCreditRequest",
+          "method": "POST",
+          "path": "/credit-requests/{}/submit",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 533
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 199
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 211
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests/{creditRequest}/documents",
+      "summary": "[Lister] Les pièces du dossier",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 352,
+          "fn": "listCreditRequestDocuments",
+          "method": "GET",
+          "path": "/credit-requests/{}/documents",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/credit.ts",
+              "line": 470
+            },
+            {
+              "file": "src/api/credit.ts",
+              "line": 501
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1021
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1127
+            },
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1619
+            },
+            {
+              "file": "src/features/client/ClientDocumentsPage.tsx",
+              "line": 117
+            },
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 450
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 425
+            },
+            {
+              "file": "src/features/committee/fillCommittee.ts",
+              "line": 447
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/credit-requests/{creditRequest}/documents",
+      "summary": "[Créer] Joindre une pièce au dossier",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 462,
+          "fn": "uploadCreditDocument",
+          "method": "POST",
+          "path": "/credit-requests/{}/documents",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/app/legacy-runtime.ts",
+              "line": 530
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 148
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 189
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 205
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests/{creditRequest}/documents/{document}",
+      "summary": "[Lire] Consulter une pièce du dossier",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 329,
+          "fn": "getCreditDocument",
+          "method": "GET",
+          "path": "/credit-requests/{}/documents/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/credit.ts",
+              "line": 337
+            },
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 323
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/credit-requests/{creditRequest}/documents/{document}",
+      "summary": "[Supprimer] Une pièce du dossier",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 450,
+          "fn": "deleteCreditDocument",
+          "method": "DELETE",
+          "path": "/credit-requests/{}/documents/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/ClientDocumentsPage.tsx",
+              "line": 97
+            },
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 189
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests/{creditRequest}/guarantees/{guarantee}",
+      "summary": "[Lire] Consulter une garantie",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 367,
+          "fn": "getCreditGuarantee",
+          "method": "GET",
+          "path": "/credit-requests/{}/guarantees/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1379
+            },
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 299
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/credit-requests/{creditRequest}/guarantees/{guarantee}",
+      "summary": "[Modifier] Une garantie en attente",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 433,
+          "fn": "updateCreditGuarantee",
+          "method": "PUT",
+          "path": "/credit-requests/{}/guarantees/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 339
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 90
+            }
+          ]
+        },
+        {
+          "file": "src/api/credit.ts",
+          "line": 439,
+          "fn": "updateCreditGuarantee",
+          "method": "PUT",
+          "path": "/credit-requests/{}/guarantees/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 339
+            },
+            {
+              "file": "src/features/client/submitLoan.ts",
+              "line": 90
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/credit-requests/{creditRequest}/guarantees/{guarantee}",
+      "summary": "[Supprimer] Une garantie en attente",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 446,
+          "fn": "deleteCreditGuarantee",
+          "method": "DELETE",
+          "path": "/credit-requests/{}/guarantees/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 307
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents/{document}/file",
+      "summary": "[Lire] Télécharger une pièce de dossier",
+      "tags": [
+        "Documents"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 348,
+          "fn": "fetchCreditDocumentFile",
+          "method": "GET",
+          "path": "/documents/{}/file",
+          "transport": "apiBlob",
+          "usages": [
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 329
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/kyc-documents/{kycDocument}/file",
+      "summary": "[Lire] Télécharger une pièce d’identité",
+      "tags": [
+        "Documents"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 143,
+          "fn": "fetchKycDocumentFile",
+          "method": "GET",
+          "path": "/kyc-documents/{}/file",
+          "transport": "apiBlob",
+          "usages": [
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 356
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/guarantees/{guarantee}/file",
+      "summary": "[Lire] Télécharger le fichier d’une garantie",
+      "tags": [
+        "Demandes de crédit"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 372,
+          "fn": "fetchGuaranteeFile",
+          "method": "GET",
+          "path": "/guarantees/{}/file",
+          "transport": "apiBlob",
+          "usages": [
+            {
+              "file": "src/features/workflow/fillDocLightbox.ts",
+              "line": 314
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/field-visits",
+      "summary": "[Lister] Les visites / rendez-vous terrain",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/requests/{creditRequest}/field-visits",
+      "summary": "[Lister] Les visites d’un dossier",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/requests/{creditRequest}/field-visits",
+      "summary": "[Créer] Planifier une visite / un rendez-vous terrain",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/agent/field-visits/{fieldVisit}",
+      "summary": "[Lire] Une visite terrain",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "PUT",
+      "path": "/api/agent/field-visits/{fieldVisit}",
+      "summary": "[Modifier] Une visite planifiée ou en cours",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/field-visits/{fieldVisit}/start",
+      "summary": "Démarrer une visite sur place",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/field-visits/{fieldVisit}/complete",
+      "summary": "Clôturer la visite avec le rapport terrain",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/field-visits/{fieldVisit}/cancel",
+      "summary": "Annuler ou marquer une absence (no-show)",
+      "tags": [
+        "Visites terrain"
+      ],
+      "matches": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/loans",
+      "summary": "[Lister] Les prêts",
+      "tags": [
+        "Prêts"
+      ],
+      "matches": [
+        {
+          "file": "src/api/loans.ts",
+          "line": 63,
+          "fn": "listMyLoans",
+          "method": "GET",
+          "path": "/loans",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentLoansPage.tsx",
+              "line": 58
+            },
+            {
+              "file": "src/features/committee/useCommitteeWorkspace.ts",
+              "line": 21
+            },
+            {
+              "file": "src/features/loans/granted.ts",
+              "line": 56
+            },
+            {
+              "file": "src/features/loans/postOctroi.ts",
+              "line": 43
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/loans/{loan}",
+      "summary": "[Lire] Détail d’un prêt",
+      "tags": [
+        "Prêts"
+      ],
+      "matches": [
+        {
+          "file": "src/api/loans.ts",
+          "line": 107,
+          "fn": "getLoan",
+          "method": "GET",
+          "path": "/loans/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentLoansPage.tsx",
+              "line": 106
+            },
+            {
+              "file": "src/features/loans/granted.ts",
+              "line": 116
+            },
+            {
+              "file": "src/features/loans/postOctroi.ts",
+              "line": 34
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/loans/{loan}/repayments",
+      "summary": "[Lister] L’échéancier",
+      "tags": [
+        "Prêts"
+      ],
+      "matches": [
+        {
+          "file": "src/api/loans.ts",
+          "line": 78,
+          "fn": "listLoanRepayments",
+          "method": "GET",
+          "path": "/loans/{}/repayments",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentLoansPage.tsx",
+              "line": 107
+            },
+            {
+              "file": "src/features/loans/granted.ts",
+              "line": 118
+            },
+            {
+              "file": "src/features/loans/postOctroi.ts",
+              "line": 38
+            },
+            {
+              "file": "src/features/loans/postOctroi.ts",
+              "line": 48
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/loans/{loan}/disburse",
+      "summary": "Décaisser un prêt accordé",
+      "tags": [
+        "Prêts"
+      ],
+      "matches": [
+        {
+          "file": "src/api/loans.ts",
+          "line": 112,
+          "fn": "disburseLoan",
+          "method": "POST",
+          "path": "/loans/{}/disburse",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentLoansPage.tsx",
+              "line": 128
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/loans/{loan}/repayments/{repayment}/record",
+      "summary": "Enregistrer un remboursement",
+      "tags": [
+        "Prêts"
+      ],
+      "matches": [
+        {
+          "file": "src/api/loans.ts",
+          "line": 124,
+          "fn": "recordLoanRepayment",
+          "method": "POST",
+          "path": "/loans/{}/repayments/{}/record",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/AgentLoansPage.tsx",
+              "line": 154
+            },
+            {
+              "file": "src/features/loans/postOctroi.ts",
+              "line": 193
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications",
+      "summary": "[Lister] Ses notifications",
+      "tags": [
+        "Notifications"
+      ],
+      "matches": [
+        {
+          "file": "src/api/notifications.ts",
+          "line": 31,
+          "fn": "listNotifications",
+          "method": "GET",
+          "path": "/notifications",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/agent/fillAgentDrawers.ts",
+              "line": 1478
+            },
+            {
+              "file": "src/features/workflow/NotificationBell.tsx",
+              "line": 57
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/{notification}/read",
+      "summary": "[Modifier] Marquer une notification comme lue",
+      "tags": [
+        "Notifications"
+      ],
+      "matches": [
+        {
+          "file": "src/api/notifications.ts",
+          "line": 56,
+          "fn": "markNotificationRead",
+          "method": "POST",
+          "path": "/notifications/{}/read",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/workflow/NotificationBell.tsx",
+              "line": 102
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/{notification}",
+      "summary": "[Lire] Consulter une notification",
+      "tags": [
+        "Notifications"
+      ],
+      "matches": [
+        {
+          "file": "src/api/notifications.ts",
+          "line": 41,
+          "fn": "getNotification",
+          "method": "GET",
+          "path": "/notifications/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/workflow/NotificationBell.tsx",
+              "line": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/notifications/{notification}",
+      "summary": "[Supprimer] Une notification",
+      "tags": [
+        "Notifications"
+      ],
+      "matches": [
+        {
+          "file": "src/api/notifications.ts",
+          "line": 60,
+          "fn": "deleteNotification",
+          "method": "DELETE",
+          "path": "/notifications/{}",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/workflow/NotificationBell.tsx",
+              "line": 116
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile-photo",
+      "summary": "[Lire] Sa photo de profil",
+      "tags": [
+        "Photo de profil"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 353,
+          "fn": "fetchProfilePhotoMeta",
+          "method": "GET",
+          "path": "/profile-photo",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 162
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 194
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile-photo",
+      "summary": "[Modifier] Sa photo de profil",
+      "tags": [
+        "Photo de profil"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 376,
+          "fn": "uploadProfilePhoto",
+          "method": "PUT",
+          "path": "/profile-photo",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 194
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 223
+            }
+          ]
+        },
+        {
+          "file": "src/api/profile.ts",
+          "line": 384,
+          "fn": "uploadProfilePhoto",
+          "method": "PUT",
+          "path": "/profile-photo",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 194
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 223
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profile-photo",
+      "summary": "[Créer] Une photo de profil",
+      "tags": [
+        "Photo de profil"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 376,
+          "fn": "uploadProfilePhoto",
+          "method": "POST",
+          "path": "/profile-photo",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 194
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 223
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/profile-photo",
+      "summary": "[Supprimer] Sa photo de profil",
+      "tags": [
+        "Photo de profil"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 369,
+          "fn": "deleteProfilePhoto",
+          "method": "DELETE",
+          "path": "/profile-photo",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 69
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 84
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/users/{user}/photo/file",
+      "summary": "[Lire] Télécharger la photo d’un utilisateur",
+      "tags": [
+        "Photo de profil"
+      ],
+      "matches": [
+        {
+          "file": "src/api/profile.ts",
+          "line": 365,
+          "fn": "fetchUserPhotoFile",
+          "method": "GET",
+          "path": "/users/{}/photo/file",
+          "transport": "apiBlob",
+          "usages": [
+            {
+              "file": "src/features/client/BorrowerProfileForm.tsx",
+              "line": 165
+            },
+            {
+              "file": "src/features/modals/EditProfileModal.tsx",
+              "line": 200
+            },
+            {
+              "file": "src/shared/layout/AppShell.tsx",
+              "line": 61
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/credit-requests/{creditRequest}/score",
+      "summary": "Calculer le score d’aide à la décision",
+      "tags": [
+        "Scoring et analyse"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 562,
+          "fn": "evaluateCreditScore",
+          "method": "POST",
+          "path": "/credit-requests/{}/score",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/credit.ts",
+              "line": 575
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/credit-requests/{creditRequest}/analysis",
+      "summary": "[Lire] Consulter la dernière analyse",
+      "tags": [
+        "Scoring et analyse"
+      ],
+      "matches": [
+        {
+          "file": "src/api/credit.ts",
+          "line": 557,
+          "fn": "getCreditAnalysis",
+          "method": "GET",
+          "path": "/credit-requests/{}/analysis",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/api/credit.ts",
+              "line": 568
+            },
+            {
+              "file": "src/features/client/fillClientRequestDrawer.ts",
+              "line": 452
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/simulations/installments",
+      "summary": "Comparer des scénarios de mensualités",
+      "tags": [
+        "Simulation"
+      ],
+      "matches": [
+        {
+          "file": "src/api/simulations.ts",
+          "line": 75,
+          "fn": "simulateInstallments",
+          "method": "POST",
+          "path": "/simulations/installments",
+          "transport": "apiJson",
+          "usages": [
+            {
+              "file": "src/features/client/runSimulation.ts",
+              "line": 150
+            },
+            {
+              "file": "src/features/client/runSimulation.ts",
+              "line": 258
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "extra": [
+    {
+      "file": "src/api/savings.ts",
+      "line": 21,
+      "fn": "getMembership",
+      "method": "GET",
+      "path": "/profile/savings-membership",
+      "transport": "apiJson"
+    },
+    {
+      "file": "src/api/savings.ts",
+      "line": 30,
+      "fn": "createMembership",
+      "method": "POST",
+      "path": "/profile/savings-membership",
+      "transport": "apiJson"
+    },
+    {
+      "file": "src/api/savings.ts",
+      "line": 30,
+      "fn": "createMembership",
+      "method": "POST",
+      "path": "/profile/savings-membership/{}/resubmit",
+      "transport": "apiJson"
+    },
+    {
+      "file": "src/api/savings.ts",
+      "line": 38,
+      "fn": "listPendingMemberships",
+      "method": "GET",
+      "path": "/admin/savings-memberships",
+      "transport": "apiJson"
+    },
+    {
+      "file": "src/api/savings.ts",
+      "line": 42,
+      "fn": "reviewMembership",
+      "method": "POST",
+      "path": "/admin/savings-memberships/{}/review",
+      "transport": "apiJson"
+    },
+    {
+      "file": "src/api/savings.ts",
+      "line": 46,
+      "fn": "membershipDocument",
+      "method": "GET",
+      "path": "/admin/savings-memberships/{}/documents/{}/file",
+      "transport": "apiBlob"
+    },
+    {
+      "file": "src/features/admin/AdminSavingsPage.tsx",
+      "line": 16,
+      "fn": "load",
+      "method": "GET",
+      "path": "/admin/financial-accounts",
+      "transport": "apiJson"
+    },
+    {
+      "file": "src/features/admin/AdminSavingsPage.tsx",
+      "line": 29,
+      "fn": "review",
+      "method": "POST",
+      "path": "/admin/financial-accounts/{}/review",
+      "transport": "apiJson"
+    }
+  ]
+}

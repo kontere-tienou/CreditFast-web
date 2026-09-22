@@ -38,6 +38,7 @@ export const VIEW_PATHS: Record<string, string> = {
   "view-client-schedule": "/app/client/schedule",
   "view-client-documents": "/app/client/documents",
   "view-client-profile": "/app/client/profile",
+  "view-client-savings": "/app/client/savings",
   "view-client-advisor": "/app/client/advisor",
   "view-role-agent": "/app/agent",
   "view-agent-inspections": "/app/agent/inspections",
@@ -54,6 +55,7 @@ export const VIEW_PATHS: Record<string, string> = {
   "view-committee-signed": "/app/committee/signed",
   "view-role-admin": "/app/admin",
   "view-admin-users": "/app/admin/users",
+  "view-admin-savings": "/app/admin/savings",
   "view-admin-roles": "/app/admin/roles",
   "view-admin-scoring": "/app/admin/scoring",
   "view-admin-audit": "/app/admin/audit",
@@ -96,6 +98,7 @@ export const ROLE_PROFILES: Record<RoleCode, RoleProfile> = {
       {
         title: "Gestion & Paiements",
         items: [
+          { id: "nav-client-savings", path: "/app/client/savings", icon: "fa-piggy-bank", label: "Mon compte épargne" },
           {
             id: "nav-client-schedule",
             path: "/app/client/schedule",
@@ -292,6 +295,9 @@ export const ROLE_PROFILES: Record<RoleCode, RoleProfile> = {
             path: "/app/admin",
             icon: "fa-gauge-high",
             label: "Tableau de Bord Admin",
+          },
+          {
+            id: "nav-admin-savings", path: "/app/admin/savings", icon: "fa-piggy-bank", label: "Comptes épargne",
           },
           {
             id: "nav-admin-users",

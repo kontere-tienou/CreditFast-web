@@ -67,6 +67,7 @@ export function patchUiSession(patch: Partial<UiSession>): void {
 }
 
 export function clearUiSession(): void {
+  Object.keys(window.sessionStorage).filter(key => key.startsWith('creditfast:savings:')).forEach(key => window.sessionStorage.removeItem(key));
   window.sessionStorage.removeItem(SESSION_KEY);
   window.localStorage.removeItem(SESSION_KEY);
 }

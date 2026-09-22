@@ -25,6 +25,8 @@ import {
   AdminUsersPage,
 } from '@/features/admin';
 import { LegacyDialogs } from '@/features/modals';
+import { ClientSavingsPage } from '@/features/savings/ClientSavingsPage';
+import { AdminSavingsPage } from '@/features/admin/AdminSavingsPage';
 
 function AppHomeRedirect() {
   const session = getUiSession();
@@ -63,6 +65,7 @@ export function AppRouter() {
           <Route path="client/schedule" element={<ClientSchedulePage />} />
           <Route path="client/documents" element={<ClientDocumentsPage />} />
           <Route path="client/profile" element={<ClientProfilePage />} />
+          <Route path="client/savings" element={<ClientSavingsPage />} />
           <Route path="client/advisor" element={<ClientAdvisorPage />} />
         </Route>
         <Route path="client/wizard" element={<LoanWizardRedirect />} />
@@ -89,6 +92,7 @@ export function AppRouter() {
         <Route element={<RequireRole allow={['ADMIN']} />}>
           <Route path="admin" element={<AdminDashboardPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
+          <Route path="admin/savings" element={<AdminSavingsPage />} />
           <Route path="admin/roles" element={<AdminRolesPage />} />
           <Route path="admin/scoring" element={<AdminScoringPage />} />
           <Route path="admin/audit" element={<AdminAuditPage />} />

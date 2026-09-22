@@ -12,7 +12,7 @@ export const physicalSections: MembershipSection[] = [
 ];
 export const legalSections: MembershipSection[] = [
   { title: '1. Identification de la société', fields: [f('company_name', 'Raison sociale'), choice('legal_form', 'Forme juridique', ['SA', 'SARL', 'GIE', 'Association', 'Coopérative', 'Autre']), f('tax_number', 'N° d’identification fiscale (NIF)'), f('registration_number', 'N° RCCM / Agrément'), f('receipt_number', 'N° récépissé (si association)', false), f('inps_number', 'N° INPS', false), f('headquarters', 'Adresse du siège'), f('email', 'Email', false, 'email'), f('phone', 'Téléphone', true, 'tel'), f('main_activity', 'Activité principale'), f('annual_turnover', 'Chiffre d’affaires annuel (FCFA)', true, 'number')] },
-  { title: '3. Bénéficiaires effectifs', fields: [choice('majority_owner', 'Une personne physique détient-elle plus de 25 % du capital ?', ['Non', 'Oui']), f('beneficial_owners', 'Bénéficiaires : noms, dates et lieux de naissance, nationalités, liens avec la société'), f('indirect_control', 'Contrôle indirect / pouvoir de décision (décrire ou indiquer « Aucun »)')] },
+  { title: '3. Bénéficiaires effectifs', fields: [choice('majority_owner', 'Une personne physique détient-elle plus de 25 % du capital ?', ['Non', 'Oui']), f('beneficiary_name', 'Prénoms et nom du bénéficiaire / de la personne qui contrôle la société'), f('beneficiary_birth_date', 'Date de naissance', true, 'date'), f('beneficiary_birth_place', 'Lieu de naissance'), f('beneficiary_nationality', 'Nationalité'), f('beneficiary_relationship', 'Lien avec la société'), f('other_beneficiaries', 'Autres bénéficiaires : noms, naissances, nationalités et liens', false), f('indirect_control', 'Contrôle indirect / pouvoir de décision (décrire ou indiquer « Aucun »)')] },
   { title: '4. Origine des fonds et objectif', fields: [f('initial_funds_origin', 'Origine de l’apport initial'), f('planned_operations', 'Nature des opérations prévues')] },
   { title: '5. Déclaration PPE', fields: [choice('pep', 'Les dirigeants ou bénéficiaires sont-ils des PPE ?', ['Non', 'Oui']), f('pep_details', 'Si oui, personnes et fonctions concernées', false)] },
 ];
@@ -21,14 +21,17 @@ export function signatorySection(index: number): MembershipSection {
   return { title: `2. Dirigeants — Signataire ${index}`, fields: [f(prefix + 'name', 'Prénoms et nom'), f(prefix + 'birth_date', 'Date de naissance', true, 'date'), f(prefix + 'birth_place', 'Lieu de naissance'), f(prefix + 'nationality', 'Nationalité'), f(prefix + 'role', 'Fonction dans la société'), f(prefix + 'identity', 'Type et n° de pièce d’identité'), f(prefix + 'address', 'Adresse'), f(prefix + 'phone', 'Téléphone', true, 'tel')] };
 }
 export const closingSection: MembershipSection = { title: 'Adhésion', fields: [f('membership_date', 'Date d’adhésion', true, 'date'), f('membership_place', 'Lieu')] };
+export const membershipFieldLabels: Record<string, string> = Object.fromEntries([commonSection, closingSection, ...physicalSections, ...legalSections, ...[1, 2, 3].map(signatorySection)].flatMap(section => section.fields.map(field => [field.key, field.key.startsWith('signatory_') ? `${section.title} — ${field.label}` : field.label])));
+membershipFieldLabels.signatory_count = 'Nombre de signataires';
 export const physicalDocuments = [ ['identity_copy', 'Copie certifiée de la pièce d’identité', true], ['address_proof', 'Justificatif de domicile', true], ['income_proof', 'Justificatif de revenus', false], ['photo', 'Photo du client', true], ['signature', 'Signature du client', true] ] as const;
 export const legalDocuments = [ ['nif_copy', 'Copie NIF', true], ['rccm_copy', 'Copie RCCM', false], ['approval_copy', 'Copie agrément / récépissé', false], ['statutes_copy', 'Copie des statuts', true], ['mandate_copy', 'Copie mandat / procuration', true], ['directors_identity', 'Copies CNI des dirigeants', true], ['owners_identity', 'Copies CNI des bénéficiaires effectifs', true] ] as const;
 
-export function validateMembership(fields: Record<string, string>, files: FormData, legal: boolean) {
+export function validateMembership(fields: Record<string, string>, files: FormData, legal: boolean, retained = new Set<string | undefined>()) {
   if (fields.pep === 'Oui' && !fields.pep_details?.trim()) return 'Précisez le lien ou la fonction de la personne politiquement exposée.';
-  if (legal && !((files.get('rccm_copy') as File)?.size || (files.get('approval_copy') as File)?.size)) return 'Joignez une copie RCCM ou une copie agrément / récépissé.';
+  if (legal && !retained.has('rccm_copy') && !retained.has('approval_copy') && !((files.get('rccm_copy') as File)?.size || (files.get('approval_copy') as File)?.size)) return 'Joignez une copie RCCM ou une copie agrément / récépissé.';
   if (legal && fields.legal_form === 'Association' && !fields.receipt_number?.trim()) return 'Indiquez le numéro de récépissé de l’association.';
-  const today = new Date().toLocaleDateString('en-CA');
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   for (const [key, value] of Object.entries(fields)) {
     if (key.endsWith('birth_date') && value >= today) return 'La date de naissance doit être antérieure à aujourd’hui.';
   }

@@ -147,10 +147,10 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
         account_type: accountType,
         balance: accountBalance === '' ? null : num(accountBalance),
         opened_at: accountOpened || null,
-        status: 'ACTIVE',
+        status: 'PENDING',
       });
       resetAccountForm();
-      await afterSave('Compte enregistré sur la fiche.');
+      await afterSave('Compte enregistré en attente de validation par l’administrateur.');
     } catch (error) {
       toast.danger(isApiError(error) ? error.message : 'Impossible d’enregistrer ce compte.');
     } finally {
@@ -317,7 +317,7 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
                         <td>{accountTypeLabel(account.account_type)}</td>
                         <td>{formatFcfa(account.balance)}</td>
                         <td>{formatDate(account.opened_at)}</td>
-                        <td>{(account.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'Actif' : account.status}</td>
+                        <td>{account.status?.toUpperCase() === 'ACTIVE' ? 'Actif' : account.status?.toUpperCase() === 'PENDING' ? 'En attente de validation' : account.status || 'Statut non renseigné'}</td>
                       </tr>
                     ))}
                   </tbody>

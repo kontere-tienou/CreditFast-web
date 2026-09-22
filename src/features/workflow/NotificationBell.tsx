@@ -11,6 +11,7 @@ import {
 import { isApiError } from '@/api/errors';
 import { getUiSession } from '@/app/session';
 import { formatDate, REQUESTS_CHANGED_EVENT } from './workflow';
+import { SAVINGS_CHANGED } from '@/features/savings/workflow';
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -25,6 +26,11 @@ function formatDateTime(value?: string | null) {
 
 function targetViewFor(item: AppNotification): { view: string; label: string } | null {
   const type = (item.type || '').toUpperCase();
+  if (type.startsWith('SAVINGS_MEMBERSHIP_')) {
+    return getUiSession()?.role === 'ADMIN'
+      ? { view: 'view-admin-savings', label: 'Voir les adhésions épargne' }
+      : { view: 'view-client-savings', label: 'Voir mon compte épargne' };
+  }
   const text = `${item.title || ''} ${item.message || ''}`.toLowerCase();
   if (type === 'COMPLEMENTS_REQUESTED' || text.includes('complément') || text.includes('pièce')) {
     return { view: 'view-client-documents', label: 'Joindre une pièce' };
@@ -61,9 +67,11 @@ export function NotificationBell() {
     const timer = window.setInterval(() => void reload(), 45000);
     const onChange = () => void reload();
     window.addEventListener(REQUESTS_CHANGED_EVENT, onChange);
+    window.addEventListener(SAVINGS_CHANGED, onChange);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener(REQUESTS_CHANGED_EVENT, onChange);
+      window.removeEventListener(SAVINGS_CHANGED, onChange);
     };
   }, []);
 
@@ -149,7 +157,7 @@ export function NotificationBell() {
               {items.map((item) => {
                 const isActive = activeId === item.id;
                 const shown = isActive && detail ? detail : item;
-                const target = getUiSession()?.role === 'CLIENT' ? targetViewFor(shown) : null;
+                const target = getUiSession()?.role === 'CLIENT' || (getUiSession()?.role === 'ADMIN' && shown.type?.toUpperCase().startsWith('SAVINGS_MEMBERSHIP_')) ? targetViewFor(shown) : null;
                 return (
                   <li key={item.id}>
                     <div className="cf-notif-row">

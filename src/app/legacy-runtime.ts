@@ -2,6 +2,7 @@ import { ROLE_PROFILES, VIEW_PATHS } from '@/app/roles';
 import { getUiSession } from '@/app/session';
 import { toast } from '@heroui/react';
 import { fetchClientProfile, hasActiveSavingsAccount } from '@/api/profile';
+import { readSavingsSession, writeSavingsSession, clearSavingsSession, type LoanIntent } from '@/features/savings/workflow';
 
 type LegacyApp = {
   currentRole?: string;
@@ -298,13 +299,15 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   let checkingSavings = false;
   app.openNewLoanModal = async (prefill) => {
     if (checkingSavings) return false;
-    if (getUiSession()?.role === 'client') {
+    const savingsOwner = getUiSession()?.userId || getUiSession()?.identifier || '';
+    if (getUiSession()?.role === 'CLIENT') {
       checkingSavings = true;
       const token = getUiSession()?.token;
       try {
         const profile = await fetchClientProfile();
         if (getUiSession()?.token !== token) return false;
         if (!hasActiveSavingsAccount(profile)) {
+          if (prefill) writeSavingsSession(savingsOwner, 'loan', prefill);
           window.dispatchEvent(new Event('creditfast:open-savings-membership'));
           return false;
         }
@@ -319,6 +322,7 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
       return false;
     }
     ensureWizardCalculationListeners();
+    prefill = prefill ?? readSavingsSession<LoanIntent>(savingsOwner, 'loan') ?? undefined;
     applyLoanModalBranding();
     app.setModalWizardStep?.(1);
     setFieldValue('wiz-amount', prefill?.amount);
@@ -327,8 +331,11 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
     setFieldValue('wiz-income', prefill?.income);
     setFieldValue('wiz-expenses', prefill?.expenses);
     showBackdrop('modal-loan-application', true);
+    clearSavingsSession(savingsOwner, 'loan');
     app.updateWizardCalculation?.();
-    await import('@/features/client/persistFiche').then(({ hydrateWizardFromProfile }) => hydrateWizardFromProfile());
+    await import('@/features/client/persistFiche').then(({ hydrateWizardFromProfile }) => hydrateWizardFromProfile()).catch(() => {
+      toast.warning('Certaines informations du profil n’ont pas pu être préremplies.');
+    });
     return true;
   };
   app.closeNewLoanModal = () => showBackdrop('modal-loan-application', false);

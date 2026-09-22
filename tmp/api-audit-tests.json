@@ -1,0 +1,20 @@
+{
+  "kind": "offline fixtures, not live API certification",
+  "checks": [
+    "Envelope credit_request correctly decoded",
+    "Credit creation uses POST and expected fields",
+    "Document upload uses multipart with document_type and file",
+    "Guarantee replacement uses POST multipart with _method PUT",
+    "Staff password reset includes confirmation",
+    "Disbursement decodes loan response",
+    "Repayment sends paid_amount to expected endpoint",
+    "Characterization: login currently trims password",
+    "Characterization: analysis 403 triggers score POST",
+    "Characterization: KYC network error becomes empty list"
+  ],
+  "reproduced": [
+    "F03: leading/trailing spaces removed from password",
+    "F04: GET failure causes score mutation attempt",
+    "F05: failed KYC lookup reported as empty documents"
+  ]
+}

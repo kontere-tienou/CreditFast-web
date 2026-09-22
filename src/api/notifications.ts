@@ -15,6 +15,10 @@ export type AppNotification = {
 export function notificationTypeLabel(type?: string) {
   const key = (type || '').toUpperCase();
   const labels: Record<string, string> = {
+    SAVINGS_MEMBERSHIP_SUBMITTED: 'Adhésion reçue',
+    SAVINGS_MEMBERSHIP_APPROVED: 'Compte épargne validé',
+    SAVINGS_MEMBERSHIP_REJECTED: 'Adhésion refusée',
+    SAVINGS_MEMBERSHIP_CHANGES_REQUESTED: 'Adhésion à compléter',
     STATUS_UPDATE: 'Suivi du dossier',
     COMPLEMENTS_REQUESTED: 'Pièces à compléter',
     LOAN_DISBURSED: 'Fonds versés',

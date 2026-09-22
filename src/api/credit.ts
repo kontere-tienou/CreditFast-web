@@ -1,5 +1,6 @@
 import { apiBlob, apiJson } from './client';
 import { unwrapCollection } from './admin';
+import { requireActiveSavingsAccount } from './savings';
 
 export type CreditRequestClient = {
   id?: number;
@@ -245,7 +246,7 @@ export function listCommitteeRequests() {
 }
 
 export async function createCreditRequest(body: StoreCreditRequestPayload) {
-  await (await import('./savings')).requireActiveSavingsAccount();
+  await requireActiveSavingsAccount();
   const payload = await apiJson<unknown>('/credit-requests', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -266,7 +267,7 @@ export async function deleteCreditRequest(id: number) {
 }
 
 export async function submitCreditRequest(id: number) {
-  await (await import('./savings')).requireActiveSavingsAccount();
+  await requireActiveSavingsAccount();
   const payload = await apiJson<unknown>(`/credit-requests/${id}/submit`, { method: 'POST' });
   return unwrapCreditRequest(payload);
 }
