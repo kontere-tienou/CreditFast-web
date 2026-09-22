@@ -18,6 +18,59 @@ Ce projet est une application front moderne construite avec Vite + React + TypeS
 - Architecture modulaire par rôle et par domaine métier
 - Compatible avec un backend API externe configuré via variables d’environnement
 
+## 🎨 Palette de couleurs
+
+La charte CreditFast suit une règle visuelle **60-30-10** : crème pour les surfaces, vert forêt pour la structure et doré pour les actions importantes.
+
+### Couleurs principales
+
+|                                                     Aperçu                                                              
+| Nom        | Code HEX  | Usage  |
+:-----------------------------------------------------------------------------------------------------------------------------: | ---------- | --------- | ---------------------------------------------- |
+| 
+<span style="display:inline-block;width:24px;height:24px;background:#F9F6EB;border:1px solid #D4CCB4;border-radius:4px"></span> 
+| Crème      | `#F9F6EB` | Fond principal, canvas, surfaces claires       |
+|             
+<span style="display:inline-block;width:24px;height:24px;background:#1B4332;border-radius:4px"></span>              
+| Vert forêt | `#1B4332` | Navigation, boutons principaux, marque         |
+|             
+<span style="display:inline-block;width:24px;height:24px;background:#F1CA30;border-radius:4px"></span>              
+| Doré       | `#F1CA30` | Accent, appels à l’action, éléments importants |
+
+### Nuances de la marque
+
+| Nom             | Code HEX  | Usage                               |
+| --------------- | --------- | ----------------------------------- |
+| Vert très clair | `#EEF4EE` | Fonds doux et badges                |
+| Vert clair      | `#D5E3D4` | Bordures et surfaces secondaires    |
+| Vert moyen      | `#518E45` | États actifs et accent secondaire   |
+| Vert profond    | `#0D2818` | Sidebar, texte fort, mode sombre    |
+| Doré clair      | `#FFF3B0` | Surbrillance douce                  |
+| Doré vif        | `#FFD700` | Accent visuel et indicateurs        |
+| Orange          | `#FF9800` | Variante d’accent et avertissements |
+
+### Couleurs sémantiques
+
+| État          | Principal | Fond      | Bordure   |
+| ------------- | --------- | --------- | --------- |
+| Succès        | `#518E45` | `#EEF4EE` | `#A7F3D0` |
+| Avertissement | `#F1CA30` | `#FFF8DC` | `#F4E7C2` |
+| Danger        | `#CE1126` | `#FEF2F2` | `#FECACA` |
+| Information   | `#1B4332` | `#EEF4EE` | `#A8C5A4` |
+
+### Neutres et texte
+
+| Nom                | Code HEX  | Usage                                    |
+| ------------------ | --------- | ---------------------------------------- |
+| Blanc cassé        | `#FFFEF8` | Cartes et panneaux                       |
+| Surface secondaire | `#F0EBDC` | Zones secondaires                        |
+| Bordure            | `#E4DDC8` | Séparateurs et contours                  |
+| Texte principal    | `#0D2818` | Titres et contenu prioritaire            |
+| Texte secondaire   | `#475569` | Descriptions et informations secondaires |
+| Texte discret      | `#94A3B8` | Métadonnées et placeholders              |
+
+Les variables CSS correspondantes sont définies dans [`src/styles/constants.css`](src/styles/constants.css) et réutilisées dans les autres feuilles de style.
+
 ## 🚀 Démarrage rapide
 
 ```bash

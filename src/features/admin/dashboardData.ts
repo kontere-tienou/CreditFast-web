@@ -1,9 +1,19 @@
-import type { StaffRole } from '@/api/admin';
+import type { StaffRole } from "@/api/admin";
+import {
+  listAdminAuditLogs,
+  listAdminUsers,
+  listScoringModels,
+} from "@/api/admin";
+import {
+  listAgentRequests,
+  listAnalystRequests,
+  listCommitteeRequests,
+} from "@/api/credit";
+import { listLoans, loanNeedsDisbursement } from "@/api/loans";
 
-/** Switch to `'api'` once list endpoints are assembled in `loadAdminDashboardFromApi`. */
-export const ADMIN_DASHBOARD_SOURCE: 'placeholder' | 'api' = 'placeholder';
+export const ADMIN_DASHBOARD_SOURCE: "placeholder" | "api" = "api";
 
-export type AdminQueueKey = 'agent' | 'analyst' | 'committee' | 'disburse';
+export type AdminQueueKey = "agent" | "analyst" | "committee" | "disburse";
 
 export type AdminAuditPreview = {
   id: string;
@@ -55,7 +65,7 @@ export const PLACEHOLDER_ADMIN_DASHBOARD: AdminDashboardSnapshot = {
     draft: 1,
     inactive: 1,
     archived: 0,
-    activeName: 'Grille STANDARD V1',
+    activeName: "Grille STANDARD V1",
   },
   roles: {
     system: 5,
@@ -69,52 +79,52 @@ export const PLACEHOLDER_ADMIN_DASHBOARD: AdminDashboardSnapshot = {
   },
   audit: [
     {
-      id: 'a1',
-      when: '2026-09-18T11:24:00.000Z',
-      action: 'user.updated',
-      actor: 'Admin Crédit Fast',
-      entity: 'users',
-      details: 'role: credit_agent · status: active',
+      id: "a1",
+      when: "2026-09-18T11:24:00.000Z",
+      action: "user.updated",
+      actor: "Admin Crédit Fast",
+      entity: "users",
+      details: "role: credit_agent · status: active",
     },
     {
-      id: 'a2',
-      when: '2026-09-18T10:02:00.000Z',
-      action: 'scoring.status',
-      actor: 'Admin Crédit Fast',
-      entity: 'scoring_models',
-      details: 'DRAFT → ACTIVE · Grille STANDARD V1',
+      id: "a2",
+      when: "2026-09-18T10:02:00.000Z",
+      action: "scoring.status",
+      actor: "Admin Crédit Fast",
+      entity: "scoring_models",
+      details: "DRAFT → ACTIVE · Grille STANDARD V1",
     },
     {
-      id: 'a3',
-      when: '2026-09-17T16:41:00.000Z',
-      action: 'user.created',
-      actor: 'Admin Crédit Fast',
-      entity: 'users',
-      details: 'credit_agent · agent@creditfast.ml',
+      id: "a3",
+      when: "2026-09-17T16:41:00.000Z",
+      action: "user.created",
+      actor: "Admin Crédit Fast",
+      entity: "users",
+      details: "credit_agent · agent@creditfast.ml",
     },
     {
-      id: 'a4',
-      when: '2026-09-17T09:15:00.000Z',
-      action: 'password.reset',
-      actor: 'Admin Crédit Fast',
-      entity: 'users',
-      details: 'sessions révoquées',
+      id: "a4",
+      when: "2026-09-17T09:15:00.000Z",
+      action: "password.reset",
+      actor: "Admin Crédit Fast",
+      entity: "users",
+      details: "sessions révoquées",
     },
     {
-      id: 'a5',
-      when: '2026-09-16T14:08:00.000Z',
-      action: 'user.deactivated',
-      actor: 'Admin Crédit Fast',
-      entity: 'users',
-      details: 'compte inactif',
+      id: "a5",
+      when: "2026-09-16T14:08:00.000Z",
+      action: "user.deactivated",
+      actor: "Admin Crédit Fast",
+      entity: "users",
+      details: "compte inactif",
     },
     {
-      id: 'a6',
-      when: '2026-09-16T08:33:00.000Z',
-      action: 'scoring.rule',
-      actor: 'Admin Crédit Fast',
-      entity: 'scoring_rules',
-      details: 'R_CAP_02 · weight 15',
+      id: "a6",
+      when: "2026-09-16T08:33:00.000Z",
+      action: "scoring.rule",
+      actor: "Admin Crédit Fast",
+      entity: "scoring_rules",
+      details: "R_CAP_02 · weight 15",
     },
   ],
 };
@@ -123,68 +133,72 @@ export type AdminOpsTask = {
   id: string;
   title: string;
   meta: string;
-  tone: 'warn' | 'info' | 'good';
+  tone: "warn" | "info" | "good";
   to: string;
 };
 
-export function buildAdminOpsTasks(snapshot: AdminDashboardSnapshot): AdminOpsTask[] {
+export function buildAdminOpsTasks(
+  snapshot: AdminDashboardSnapshot,
+): AdminOpsTask[] {
   const tasks: AdminOpsTask[] = [];
 
   if (snapshot.scoring.active === 0) {
     tasks.push({
-      id: 'scoring-active',
-      title: 'Aucun modèle de scoring ACTIVE',
-      meta: 'Les dossiers ne peuvent pas être notés tant qu’un modèle n’est pas activé.',
-      tone: 'warn',
-      to: '/app/admin/scoring',
+      id: "scoring-active",
+      title: "Aucun modèle de scoring ACTIVE",
+      meta: "Les dossiers ne peuvent pas être notés tant qu’un modèle n’est pas activé.",
+      tone: "warn",
+      to: "/app/admin/scoring",
     });
   } else if (snapshot.scoring.draft > 0) {
     tasks.push({
-      id: 'scoring-draft',
-      title: `${snapshot.scoring.draft} modèle${snapshot.scoring.draft > 1 ? 's' : ''} en brouillon`,
-      meta: snapshot.scoring.activeName ? `Actif : ${snapshot.scoring.activeName}` : 'Activer ou archiver les brouillons.',
-      tone: 'info',
-      to: '/app/admin/scoring',
+      id: "scoring-draft",
+      title: `${snapshot.scoring.draft} modèle${snapshot.scoring.draft > 1 ? "s" : ""} en brouillon`,
+      meta: snapshot.scoring.activeName
+        ? `Actif : ${snapshot.scoring.activeName}`
+        : "Activer ou archiver les brouillons.",
+      tone: "info",
+      to: "/app/admin/scoring",
     });
   }
 
   if (snapshot.users.inactive > 0) {
     tasks.push({
-      id: 'users-inactive',
-      title: `${snapshot.users.inactive} compte${snapshot.users.inactive > 1 ? 's' : ''} inactif${snapshot.users.inactive > 1 ? 's' : ''}`,
-      meta: 'Vérifier révocation des sessions et éventuelle réactivation.',
-      tone: 'info',
-      to: '/app/admin/users',
+      id: "users-inactive",
+      title: `${snapshot.users.inactive} compte${snapshot.users.inactive > 1 ? "s" : ""} inactif${snapshot.users.inactive > 1 ? "s" : ""}`,
+      meta: "Vérifier révocation des sessions et éventuelle réactivation.",
+      tone: "info",
+      to: "/app/admin/users",
     });
   }
 
   if (snapshot.queues.committee > 0) {
     tasks.push({
-      id: 'queue-committee',
+      id: "queue-committee",
       title: `${snapshot.queues.committee} dossiers en file comité`,
-      meta: 'Octroi en attente — lecture seule ici tant que l’API n’est pas branchée.',
-      tone: 'warn',
-      to: '/app/admin',
+      meta: "Octroi en attente — lecture seule ici tant que l’API n’est pas branchée.",
+      tone: "warn",
+      to: "/app/admin",
     });
   }
 
   if (snapshot.queues.disburse > 0) {
     tasks.push({
-      id: 'queue-disburse',
+      id: "queue-disburse",
       title: `${snapshot.queues.disburse} prêts à décaisser`,
-      meta: 'Action chargé / admin via l’API prêts.',
-      tone: 'info',
-      to: '/app/admin',
+      meta: "Action chargé / admin via l’API prêts.",
+      tone: "info",
+      to: "/app/admin",
     });
   }
 
   if (tasks.length === 0) {
     tasks.push({
-      id: 'ok',
-      title: 'Rien à traiter',
-      meta: 'Comptes, scoring et files sont dans les seuils.',
-      tone: 'good',
-      to: '/app/admin',
+      id: "ok",
+      title: "Rien à traiter",
+      meta: "Comptes, scoring et files sont dans les seuils.",
+      tone: "good",
+      to: "/app/admin",
     });
   }
 
@@ -192,18 +206,33 @@ export function buildAdminOpsTasks(snapshot: AdminDashboardSnapshot): AdminOpsTa
 }
 
 export async function loadAdminDashboard(): Promise<AdminDashboardSnapshot> {
-  if (ADMIN_DASHBOARD_SOURCE === 'api') {
+  if (ADMIN_DASHBOARD_SOURCE === "api") {
     return loadAdminDashboardFromApi();
   }
   return structuredClone(PLACEHOLDER_ADMIN_DASHBOARD);
 }
 
-/** Assemble live admin lists when `ADMIN_DASHBOARD_SOURCE` is `'api'`. Queues stay 0 until those endpoints exist. */
+/** Assemble the admin overview from the same live lists used by each operational workspace. */
 async function loadAdminDashboardFromApi(): Promise<AdminDashboardSnapshot> {
-  const { listAdminUsers, listScoringModels, listAdminAuditLogs } = await import('@/api/admin');
-  const [users, models, logs] = await Promise.all([listAdminUsers(), listScoringModels(), listAdminAuditLogs()]);
+  const [
+    users,
+    models,
+    logs,
+    agentRequests,
+    analystRequests,
+    committeeRequests,
+    loans,
+  ] = await Promise.all([
+    listAdminUsers(),
+    listScoringModels(),
+    listAdminAuditLogs(),
+    listAgentRequests(),
+    listAnalystRequests(),
+    listCommitteeRequests(),
+    listLoans(),
+  ]);
 
-  const byRole: AdminDashboardSnapshot['users']['byRole'] = {
+  const byRole: AdminDashboardSnapshot["users"]["byRole"] = {
     admin: 0,
     credit_agent: 0,
     analyst: 0,
@@ -217,40 +246,58 @@ async function loadAdminDashboardFromApi(): Promise<AdminDashboardSnapshot> {
     }
   }
 
-  const scoringStatus = (status?: string) => (status || '').toUpperCase();
+  const scoringStatus = (status?: string) => (status || "").toUpperCase();
 
   return {
     users: {
       total: users.length,
-      active: users.filter((user) => user.status !== 'inactive').length,
-      inactive: users.filter((user) => user.status === 'inactive').length,
+      active: users.filter((user) => user.status !== "inactive").length,
+      inactive: users.filter((user) => user.status === "inactive").length,
       byRole,
     },
     scoring: {
       total: models.length,
-      active: models.filter((model) => scoringStatus(model.status) === 'ACTIVE').length,
-      draft: models.filter((model) => scoringStatus(model.status) === 'DRAFT').length,
-      inactive: models.filter((model) => scoringStatus(model.status) === 'INACTIVE').length,
-      archived: models.filter((model) => scoringStatus(model.status) === 'ARCHIVED').length,
-      activeName: models.find((model) => scoringStatus(model.status) === 'ACTIVE')?.name ?? null,
+      active: models.filter((model) => scoringStatus(model.status) === "ACTIVE")
+        .length,
+      draft: models.filter((model) => scoringStatus(model.status) === "DRAFT")
+        .length,
+      inactive: models.filter(
+        (model) => scoringStatus(model.status) === "INACTIVE",
+      ).length,
+      archived: models.filter(
+        (model) => scoringStatus(model.status) === "ARCHIVED",
+      ).length,
+      activeName:
+        models.find((model) => scoringStatus(model.status) === "ACTIVE")
+          ?.name ?? null,
     },
     roles: {
       system: 5,
       custom: 0,
     },
     queues: {
-      agent: 0,
-      analyst: 0,
-      committee: 0,
-      disburse: 0,
+      agent: agentRequests.length,
+      analyst: analystRequests.length,
+      committee: committeeRequests.length,
+      disburse: loans.filter(loanNeedsDisbursement).length,
     },
-    audit: logs.slice(0, 6).map((log, index) => ({
-      id: String(log.id ?? index),
-      when: log.created_at || '',
-      action: String(log.action || '—'),
-      actor: log.user?.full_name || log.user?.email || log.user_name || '—',
-      entity: String(log.entity || log.entity_type || '—'),
-      details: typeof log.details === 'string' ? log.details : JSON.stringify(log.details ?? log.description ?? ''),
-    })),
+    audit: [...logs]
+      .sort((left, right) => {
+        const leftTime = left.created_at ? Date.parse(left.created_at) : 0;
+        const rightTime = right.created_at ? Date.parse(right.created_at) : 0;
+        return rightTime - leftTime;
+      })
+      .slice(0, 5)
+      .map((log, index) => ({
+        id: String(log.id ?? index),
+        when: log.created_at || "",
+        action: String(log.action || "—"),
+        actor: log.user?.full_name || log.user?.email || log.user_name || "—",
+        entity: String(log.entity || log.entity_type || "—"),
+        details:
+          typeof log.details === "string"
+            ? log.details
+            : JSON.stringify(log.details ?? log.description ?? ""),
+      })),
   };
 }
