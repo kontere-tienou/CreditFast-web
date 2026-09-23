@@ -1,0 +1,26 @@
+{
+  "password": "demo-local",
+  "storageKey": "creditfast:local-workflow:v1",
+  "note": "Mot de passe d’atelier, non vérifié. Magasin du navigateur, pas de l’API.",
+  "clients": [
+    { "identifier": "+22370000001", "name": "Client avec épargne", "account": "DEMO-EP-1", "balance": 500000, "agency": "BKO-HAM", "identity": "CNI vérifiée" },
+    { "identifier": "+22370000002", "name": "Client sans épargne", "account": null, "balance": null, "agency": "BKO-HAM", "identity": "CNI vérifiée" },
+    { "identifier": "+22370000003", "name": "Profil à compléter", "account": "DEMO-EP-3", "balance": 500000, "agency": "BKO-HAM", "identity": "absente" },
+    { "identifier": "+22370000004", "name": "Client Ségou", "account": "DEMO-EP-SEGOU", "balance": 500000, "agency": "SEG-CEN", "identity": "CNI vérifiée" }
+  ],
+  "staff": [
+    { "identifier": "agent@demo.creditfast", "role": "agent", "agency": "BKO-HAM" },
+    { "identifier": "analyst@demo.creditfast", "role": "analyste", "agency": "BKO-HAM" },
+    { "identifier": "committee@demo.creditfast", "role": "comité", "agency": "BKO-HAM" },
+    { "identifier": "admin@demo.creditfast", "role": "administrateur", "agency": null },
+    { "identifier": "agent.segou@demo.creditfast", "role": "agent", "agency": "SEG-CEN" },
+    { "identifier": "analyst.segou@demo.creditfast", "role": "analyste", "agency": "SEG-CEN" },
+    { "identifier": "committee.segou@demo.creditfast", "role": "comité", "agency": "SEG-CEN" },
+    { "identifier": "agent.kalabancoura@demo.creditfast", "role": "agent", "agency": "BKO-KAL" },
+    { "identifier": "analyst.kalabancoura@demo.creditfast", "role": "analyste", "agency": "BKO-KAL" },
+    { "identifier": "committee.kalabancoura@demo.creditfast", "role": "comité", "agency": "BKO-KAL" },
+    { "identifier": "agent.faladie@demo.creditfast", "role": "agent", "agency": "BKO-FAL" },
+    { "identifier": "analyst.faladie@demo.creditfast", "role": "analyste", "agency": "BKO-FAL" },
+    { "identifier": "committee.faladie@demo.creditfast", "role": "comité", "agency": "BKO-FAL" }
+  ]
+}

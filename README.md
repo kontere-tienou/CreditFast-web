@@ -101,7 +101,13 @@ VITE_API_URL=https://creditfast-api.onrender.com/api
 VITE_BACKEND_ENABLED=true
 ```
 
-`VITE_BACKEND_ENABLED=false` réactive le magasin local du navigateur (`src/api/localWorkflow.ts`), sans appel réseau. Le mot de passe d’atelier de ce mode est `demo-local`. Les utilisateurs de ce magasin sont listés dans [docs/test-users.md](docs/test-users.md).
+Si l’API ne répond pas, la démo live se lance à part, sans toucher au `.env` de l’API :
+
+```bash
+npm run demo
+```
+
+Elle ouvre http://localhost:5175/ sur le magasin du navigateur. Comptes et mot de passe `demo-local` : [demo-local/README.md](demo-local/README.md).
 
 ```bash
 npm run dev       # serveur de développement
@@ -115,6 +121,7 @@ npm run preview   # prévisualisation du build
 .
 ├── index.html
 ├── public/                  # images et scripts historiques (public/js)
+├── demo-local/              # démo sans API (npm run demo)
 ├── docs/                    # contrats d’interface et d’API
 ├── scripts/                 # vérifications des parcours locaux
 ├── src/

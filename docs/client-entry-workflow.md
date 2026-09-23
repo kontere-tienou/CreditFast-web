@@ -4,7 +4,7 @@
 
 L’application appelle l’API (`VITE_API_URL`, par défaut `https://creditfast-api.onrender.com/api`). Le magasin du navigateur n’est utilisé que si `VITE_BACKEND_ENABLED=false`. Dans ce cas, `src/api/client.ts` dirige les opérations vers `src/api/localWorkflow.ts`, sans repli réseau.
 
-Les scénarios ci-dessous décrivent ce magasin local. Ils ne s’appliquent pas lorsque l’API est branchée.
+Les scénarios ci-dessous décrivent ce magasin local. Ils ne s’appliquent pas lorsque l’API est branchée. Pour une démo live sans réseau : `npm run demo`, dossier [demo-local](../demo-local/README.md).
 
 Sur la page de connexion, choisir un scénario dans « Atelier des parcours », puis se connecter :
 

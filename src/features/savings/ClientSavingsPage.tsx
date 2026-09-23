@@ -66,36 +66,54 @@ export function ClientSavingsPage() {
         {error && <p role="alert">{error}</p>}
         {!loading && !error && (
           <>
-            {!active && !(membership && !editable) && <h2 className="savings-workspace-status">
-              {membership
-                  ? `Demande ${membership.reference || `#${membership.id}`} : ${membershipStatusLabel(membership.status)}`
-                  : lookupStatus === 'REVIEW_REQUIRED' ? 'Vérification du rattachement nécessaire' : lookupStatus === 'INACTIVE' ? 'Compte existant — contactez votre agence' : 'Préparer l’ouverture de votre compte épargne'}
-            </h2>}
             {profile?.financial_accounts
               ?.filter(isSavingsAccount)
               .map((account) => (
                 <SavingsAccountOverview key={account.id ?? account.account_number} account={account} profile={profile!} />
               ))}
-            {membership?.rejection_reason && (
-              <p>Motif du refus : {membership.rejection_reason}</p>
-            )}
-            {membership?.correction_reason && (
-              <p>Éléments à compléter : {membership.correction_reason}</p>
-            )}
             {!active && editable && (
-              <p>
-                {lookupStatus === 'INACTIVE' ? 'Votre compte existe déjà. Contactez votre agence pour vérifier sa situation et les démarches nécessaires à son activation.' : membership?.fields.purpose === 'IDENTITY_REVIEW' || lookupStatus === 'REVIEW_REQUIRED' ? 'Votre agence doit confirmer votre identité et le rattachement à un compte existant avant toute ouverture.' : 'La pré-demande en ligne prépare votre accueil. L’ouverture du compte sera finalisée en agence.'}
-              </p>
-            )}
-            {!active && editable && (
-              <button
-                className="btn btn-primary"
-                onClick={() => window.dispatchEvent(new Event(OPEN_SAVINGS))}
-              >
-                {membership
-                  ? "Compléter ma pré-demande"
-                  : lookupStatus === 'REVIEW_REQUIRED' || lookupStatus === 'INACTIVE' ? "Consulter les prochaines étapes" : "Commencer ma pré-demande"}
-              </button>
+              <article className="savings-intro">
+                <div className="savings-intro-mark" aria-hidden="true">
+                  <i className="fas fa-piggy-bank" />
+                </div>
+                <div className="savings-intro-copy">
+                  <h2>
+                    {membership
+                      ? `Demande ${membership.reference || `#${membership.id}`}`
+                      : lookupStatus === 'REVIEW_REQUIRED'
+                        ? 'Vérification du rattachement nécessaire'
+                        : lookupStatus === 'INACTIVE'
+                          ? 'Compte existant — contactez votre agence'
+                          : 'Préparer l’ouverture de votre compte épargne'}
+                  </h2>
+                  {membership && (
+                    <p className="savings-intro-status">{membershipStatusLabel(membership.status)}</p>
+                  )}
+                  {membership?.rejection_reason && (
+                    <p>Motif du refus : {membership.rejection_reason}</p>
+                  )}
+                  {membership?.correction_reason && (
+                    <p>Éléments à compléter : {membership.correction_reason}</p>
+                  )}
+                  <p>
+                    {lookupStatus === 'INACTIVE'
+                      ? 'Votre compte existe déjà. Contactez votre agence pour vérifier sa situation et les démarches nécessaires à son activation.'
+                      : membership?.fields.purpose === 'IDENTITY_REVIEW' || lookupStatus === 'REVIEW_REQUIRED'
+                        ? 'Votre agence doit confirmer votre identité et le rattachement à un compte existant avant toute ouverture.'
+                        : 'La pré-demande en ligne prépare votre accueil. L’ouverture du compte sera finalisée en agence.'}
+                  </p>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => window.dispatchEvent(new Event(OPEN_SAVINGS))}
+                  >
+                    {membership
+                      ? 'Compléter ma pré-demande'
+                      : lookupStatus === 'REVIEW_REQUIRED' || lookupStatus === 'INACTIVE'
+                        ? 'Consulter les prochaines étapes'
+                        : 'Commencer ma pré-demande'}
+                  </button>
+                </div>
+              </article>
             )}
             {membership && !editable && (
               <SavingsRequestStatus
