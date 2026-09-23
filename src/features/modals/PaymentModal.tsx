@@ -17,7 +17,7 @@ export function PaymentModal() {
         <h4 style={{ fontSize: "1.1rem", fontWeight: 800, margin: 0, color: "white" }}>
           <i className="fas fa-mobile-screen mr-2"></i> Règlement d'Échéance CreditFast
         </h4>
-          <span style={{ fontSize: "0.76rem", color: "#d1fae5" }}>Montant à régler et enregistrement en agence</span>
+          <span style={{ fontSize: "0.76rem", color: "#d1fae5" }}>Montant à régler et validation du paiement</span>
       </div>
       <button type="button" className="modal-close-btn" style={{ color: "white", background: "rgba(255,255,255,0.2)", border: "none", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={() => callApp("closeClientPaymentModal")}>
         <i className="fas fa-times"></i>
@@ -44,7 +44,7 @@ export function PaymentModal() {
         </div>
 
         <p id="payment-client-hint" style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
-          Le montant à régler est indiqué ci-dessus. L’enregistrement du paiement est fait par votre chargé à l’agence.
+          Choisissez le moyen de paiement et validez. Le montant indiqué est enregistré sur cette échéance.
         </p>
 
         <div id="payment-staff-fields" hidden>
@@ -93,7 +93,7 @@ export function PaymentModal() {
 
         {/* Submit Button */}
         <Button type="submit" id="btn-confirm-momo-pay" variant="success" className="btn-lg" style={{ width: "100%", justifyContent: "center" }}>
-          <i className="fas fa-lock mr-2"></i> J’ai noté le montant
+          <i className="fas fa-check mr-2"></i> Valider le paiement
         </Button>
       </form>
     </div>

@@ -540,13 +540,16 @@ async function handle(rawPath: string, init: RequestInit, token?: string): Promi
     const loan = loans.find(row => row.id === Number(loanPath[1]));
     if (!loan) return failure('Prêt introuvable.', 404);
     if (method === 'GET') return loanPath[2] === 'repayments' ? collection(loan.repayments) : response({ loan });
-    if (!['admin', 'credit_agent'].includes(user.role)) return failure('Action réservée à l’équipe.', 403);
+    const team = ['admin', 'credit_agent'].includes(user.role);
+    const owner = user.role === 'client' && store.requests.some(row => row.loan?.id === loan.id && row.client_id === user.id);
     if (loanPath[2] === 'disburse' && method === 'POST') {
+      if (!team) return failure('Action réservée à l’équipe.', 403);
       if (loan.status !== 'APPROVED') return failure('Les fonds ont déjà été versés dans ce scénario.');
       Object.assign(loan, { status: 'ACTIVE', disbursed_at: body.disbursed_at || now(), funds_received: loan.principal_amount });
       return commit({ loan });
     }
     if (loanPath[3] && method === 'POST') {
+      if (!team && !owner) return failure('Action réservée à l’équipe.', 403);
       const repayment = loan.repayments.find((row: Row) => row.id === Number(loanPath[3]));
       const amount = Number(body.paid_amount);
       if (!repayment || !(amount > 0) || amount > repayment.remaining_amount || loan.status !== 'ACTIVE') return failure('Montant ou échéance invalide.');
@@ -557,6 +560,7 @@ async function handle(rawPath: string, init: RequestInit, token?: string): Promi
       if (loan.outstanding_amount <= 0) loan.status = 'CLOSED';
       return commit({ loan });
     }
+    if (method !== 'GET' && !team) return failure('Action réservée à l’équipe.', 403);
   }
 
   const request = path.match(/^\/(credit-requests|agent\/requests|analyst\/requests|committee\/requests)(?:\/(\d+))?(?:\/(.*))?$/);

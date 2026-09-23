@@ -1,10 +1,10 @@
 # Accès CreditFast et compte bancaire
 
-## Phase actuelle : validation locale du frontend
+## Mode de données
 
-Le backend est débranché par défaut. `src/app/runtimeMode.ts` active le mode local tant que `VITE_BACKEND_ENABLED` ne vaut pas explicitement `true`. La présence de `VITE_API_URL` ne suffit pas à activer une connexion. Ne réactiver le backend qu’après validation des processus.
+L’application appelle l’API (`VITE_API_URL`, par défaut `https://creditfast-api.onrender.com/api`). Le magasin du navigateur n’est utilisé que si `VITE_BACKEND_ENABLED=false`. Dans ce cas, `src/api/client.ts` dirige les opérations vers `src/api/localWorkflow.ts`, sans repli réseau.
 
-Le transport `src/api/client.ts` dirige les opérations vers `src/api/localWorkflow.ts`, sans repli réseau. Les écrans et formulaires existants restent les supports de validation du futur backend.
+Les scénarios ci-dessous décrivent ce magasin local. Ils ne s’appliquent pas lorsque l’API est branchée.
 
 Sur la page de connexion, choisir un scénario dans « Atelier des parcours », puis se connecter :
 

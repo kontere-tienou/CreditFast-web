@@ -71,72 +71,85 @@ La charte CreditFast suit une règle visuelle **60-30-10** : crème pour les sur
 
 Les variables CSS correspondantes sont définies dans [`src/styles/constants.css`](src/styles/constants.css) et réutilisées dans les autres feuilles de style.
 
-## 🚀 Démarrage rapide
+## Technologies
+
+| Outil | Rôle |
+| --- | --- |
+| React 19 | Interface |
+| TypeScript 5 | Typage |
+| Vite 7 | Serveur de développement et build |
+| React Router 7 | Routes et espaces par rôle |
+| Tailwind CSS 4 | Styles utilitaires |
+| HeroUI et React Aria | Composants et accessibilité |
+| API CreditFast | `https://creditfast-api.onrender.com/api` |
+
+Node.js et npm servent à installer les dépendances et à lancer les scripts. Les tests de parcours local sont des scripts `node` dans `scripts/`.
+
+## Démarrage
+
+L’application parle à l’API. Les comptes de démonstration du navigateur ne sont pas utilisés.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Puis ouvrir l’URL affichée par Vite dans le terminal.
-
-## 🧪 Scripts disponibles
-
-```bash
-npm run dev      # démarre le serveur de développement
-npm run build    # construit la version de production
-npm run preview  # prévisualise le build localement
-```
-
-## ⚙️ Configuration
-
-Le projet utilise un fichier d’environnement. Consultez `.env.example` pour la configuration de l’API :
+Copier `.env.example` vers `.env` si l’adresse de l’API doit changer :
 
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=https://creditfast-api.onrender.com/api
+VITE_BACKEND_ENABLED=true
 ```
 
-## 📁 Structure du projet
+`VITE_BACKEND_ENABLED=false` réactive le magasin local du navigateur (`src/api/localWorkflow.ts`), sans appel réseau. Le mot de passe d’atelier de ce mode est `demo-local`. Les utilisateurs de ce magasin sont listés dans [docs/test-users.md](docs/test-users.md).
+
+```bash
+npm run dev       # serveur de développement
+npm run build     # vérification TypeScript et build
+npm run preview   # prévisualisation du build
+```
+
+## Structure du projet
 
 ```text
 .
-├── index.html                   # Entrée HTML de l’application Vite
-├── public/
-│   ├── images/
-│   └── js/                     # Scripts legacy et assets historiques
-│       ├── app.js
-│       ├── charts.js
-│       ├── constants.js
-│       ├── credit-scoring.js
-│       ├── data.js
-│       ├── interactions.js
-│       ├── ocr-engine.js
-│       └── ...
+├── index.html
+├── public/                  # images et scripts historiques (public/js)
+├── docs/                    # contrats d’interface et d’API
+├── scripts/                 # vérifications des parcours locaux
 ├── src/
-│   ├── app/                    # routing, rôles, session, bridge legacy
-│   ├── api/                    # appels API et types
-│   ├── components/             # composants réutilisables
-│   ├── features/               # modules métier par rôle
-│   ├── shared/                 # layout, tables, UI partagée
-│   ├── styles/                 # styles globaux et thème
-│   ├── utils/
+│   ├── main.tsx             # démarrage React
 │   ├── App.tsx
-│   ├── main.tsx
-│   └── vite-env.d.ts
-├── scripts/
-├── .env
+│   ├── app/                 # routes, rôles, session
+│   ├── api/                 # client HTTP et contrats
+│   ├── assets/
+│   ├── components/
+│   ├── features/            # écrans par domaine
+│   │   ├── auth/
+│   │   ├── client/
+│   │   ├── agent/
+│   │   ├── analyst/
+│   │   ├── committee/
+│   │   ├── admin/
+│   │   ├── savings/
+│   │   ├── loans/
+│   │   ├── assistant/
+│   │   ├── modals/
+│   │   ├── drawers/
+│   │   └── workflow/
+│   ├── shared/              # layout, tableaux, champs, montants
+│   ├── styles/
+│   └── utils/
 ├── .env.example
 ├── package.json
 ├── tsconfig.json
-├── tsconfig.app.json
-├── tsconfig.node.json
 ├── vite.config.ts
-├── vercel.json
-├── README.md
-└── package-lock.json
+└── vercel.json
 ```
 
-## 🧩 Architecture modulaire
+Le détail des endpoints est dans [docs/backend-reference.md](docs/backend-reference.md). L’index des autres documents est dans [docs/README.md](docs/README.md).
+
+## Architecture
 
 Le code est organisé selon les responsabilités métier et les rôles utilisateurs :
 

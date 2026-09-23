@@ -181,7 +181,7 @@ Un accord (`APPROVED` ou `AMENDED`) :
 
 `POST /loans/{id}/disburse` après cet octroi échoue : les fonds sont déjà versés. Le statut n’est plus `APPROVED`.
 
-Enregistrer un remboursement, `POST /loans/{id}/repayments/{repaymentId}/record`, diminue le restant dû. Il ne débite pas le compte épargne.
+Enregistrer un remboursement, `POST /loans/{id}/repayments/{repaymentId}/record`, diminue le restant dû. Le client peut valider le règlement de sa propre échéance. L’agent et l’administrateur le peuvent aussi. Le décaissement reste réservé à l’équipe. Ce règlement ne débite pas le compte épargne.
 
 Les dossiers `APPROVED`, `AMENDED`, `REJECTED` et `ADJOURNED` restent listés pour consultation. Les champs de vote sont désactivés.
 

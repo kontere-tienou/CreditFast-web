@@ -10,7 +10,11 @@ export type LoanRepaymentRef = {
   repaymentId: number;
 };
 
-let pendingPay: LoanRepaymentRef | null = null;
+type PendingPayment = LoanRepaymentRef & {
+  amount: number;
+};
+
+let pendingPay: PendingPayment | null = null;
 
 export function parseLoanRepaymentRef(identifier?: string | number | null): LoanRepaymentRef | null {
   const raw = String(identifier ?? '').trim();
@@ -131,22 +135,27 @@ export async function openClientPaymentModal(identifier?: unknown) {
       toast.info('Cette échéance est déjà réglée.');
       return;
     }
-    pendingPay = { loanId: loan.id, repaymentId: repayment.id };
+    const due = repayment.remaining_amount ?? repayment.expected_amount;
+    if (typeof due !== 'number' || !Number.isFinite(due) || due <= 0) {
+      toast.warning('Le montant de cette échéance n’est pas disponible.');
+      return;
+    }
+    pendingPay = { loanId: loan.id, repaymentId: repayment.id, amount: due };
     setText('payment-modal-loan-label', `Prêt #${loan.id}`);
     setText('payment-modal-due-label', repayment.due_date ? formatDate(repayment.due_date) : `Échéance #${repayment.id}`);
-    setText('payment-modal-amount-label', formatFcfa(repayment.expected_amount ?? repayment.remaining_amount));
+    setText('payment-modal-amount-label', formatFcfa(due));
     const btn = document.getElementById('btn-confirm-momo-pay');
     const staff = getUiSession()?.role === 'CREDIT_OFFICER' || getUiSession()?.role === 'ADMIN';
     if (btn) {
       btn.innerHTML = staff
-        ? `<i class="fas fa-check mr-2"></i> Enregistrer ${formatFcfa(repayment.expected_amount ?? repayment.remaining_amount)}`
-        : `<i class="fas fa-eye mr-2"></i> J’ai noté le montant`;
+        ? `<i class="fas fa-check mr-2"></i> Enregistrer ${formatFcfa(due)}`
+        : `<i class="fas fa-check mr-2"></i> Valider le paiement`;
     }
     const hint = document.getElementById('payment-client-hint');
     if (hint) {
       hint.textContent = staff
         ? 'Le règlement est enregistré ici par le chargé, après encaissement en agence ou Mobile Money.'
-        : 'Le montant à régler est indiqué ci-dessus. L’enregistrement du paiement est fait par votre chargé à l’agence.';
+        : 'Choisissez le moyen de paiement et validez. Le montant indiqué est enregistré sur cette échéance.';
     }
     const amountInput = document.getElementById('payment-paid-amount') as HTMLInputElement | null;
     const dateInput = document.getElementById('payment-paid-date') as HTMLInputElement | null;
@@ -172,29 +181,32 @@ export async function submitClientPayment(event?: Event) {
   event?.preventDefault();
   const session = getUiSession();
   const staff = session?.role === 'CREDIT_OFFICER' || session?.role === 'ADMIN';
-  if (!staff) {
-    closeClientPaymentModal();
-    toast.info('Présentez ce montant à l’agence. Votre chargé enregistre le règlement une fois le versement reçu.');
-    return;
-  }
   if (!pendingPay) {
     toast.warning('Choisissez une échéance à enregistrer.');
     return;
   }
-  const amount = parseAmount((document.getElementById('payment-paid-amount') as HTMLInputElement | null)?.value);
+  const typed = parseAmount((document.getElementById('payment-paid-amount') as HTMLInputElement | null)?.value);
+  const amount = staff ? typed : pendingPay.amount;
   if (amount == null || amount < 0.01) {
-    toast.warning('Indiquez le montant encaissé.');
+    toast.warning(staff ? 'Indiquez le montant encaissé.' : 'Le montant de cette échéance n’est pas disponible.');
     return;
   }
-  const paymentDate = (document.getElementById('payment-paid-date') as HTMLInputElement | null)?.value || undefined;
-  const comment = (document.getElementById('payment-phone-number') as HTMLInputElement | null)?.value?.trim();
+  const paymentDate = staff
+    ? (document.getElementById('payment-paid-date') as HTMLInputElement | null)?.value || undefined
+    : new Date().toISOString().slice(0, 10);
+  const phone = (document.getElementById('payment-phone-number') as HTMLInputElement | null)?.value?.trim();
+  if (!staff && !phone) {
+    toast.warning('Indiquez le numéro Mobile Money.');
+    return;
+  }
   const provider = (document.querySelector('input[name="momo_provider"]:checked') as HTMLInputElement | null)?.value;
+  const comment = [provider, phone].filter(Boolean).join(' · ') || undefined;
   try {
     const { recordLoanRepayment } = await import('@/api/loans');
     await recordLoanRepayment(pendingPay.loanId, pendingPay.repaymentId, {
       paid_amount: amount,
       payment_date: paymentDate,
-      comment: [provider, comment].filter(Boolean).join(' · ') || undefined,
+      comment,
     });
     closeClientPaymentModal();
     notifyRequestsChanged();

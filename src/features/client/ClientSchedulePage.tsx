@@ -75,6 +75,7 @@ export function ClientSchedulePage() {
     activeLoan?.id,
     activeLoan?.credit_request_id,
     activeLoan?.status,
+    activeLoan?.outstanding_amount,
     loans.length,
   ]);
 
@@ -163,7 +164,7 @@ export function ClientSchedulePage() {
             onClick={() => callApp("openClientPaymentModal")}
             disabled={!canPay}
           >
-            <i className="fas fa-wallet"></i> Voir le montant à régler
+            <i className="fas fa-wallet"></i> Régler l’échéance
           </Button>
         </div>
       </div>

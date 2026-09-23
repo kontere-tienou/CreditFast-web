@@ -1,2 +1,2 @@
-// Backend integration is opt-in, after the local workflows have been validated.
-export const LOCAL_WORKFLOW = import.meta.env.VITE_BACKEND_ENABLED !== 'true';
+// The SPA calls the API. Set VITE_BACKEND_ENABLED=false to use the browser store.
+export const LOCAL_WORKFLOW = import.meta.env.VITE_BACKEND_ENABLED === 'false';
