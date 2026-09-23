@@ -8,11 +8,11 @@ export function parseAmount(value?: string | null) {
   if (value == null) {
     return null;
   }
-  const digits = String(value).replace(/[^\d-]/g, '');
-  if (!digits || digits === '-') {
+  const integer = String(value).trim().replace(/\s/g, '').split(/[.,]/)[0]?.replace(/[^\d-]/g, '') ?? '';
+  if (!integer || integer === '-') {
     return null;
   }
-  const parsed = Number(digits);
+  const parsed = Number(integer);
   return Number.isFinite(parsed) ? parsed : null;
 }
 

@@ -212,7 +212,7 @@ function activeSavingsAccount(profile: Row | undefined) {
 }
 function accountFigures(store: Store, clientId: number) {
   const finances = store.profiles.find(row => row.id === clientId)?.financial_profile ?? {};
-  const existing = store.requests.filter(row => row.client_id === clientId && row.loan && ['ACTIVE', 'APPROVED'].includes(row.loan.status)).reduce((sum, row) => sum + (Number(row.loan.monthly_payment) || 0), 0);
+  const existing = store.requests.filter(row => row.client_id === clientId && row.loan && ['ACTIVE', 'APPROVED'].includes(row.loan.status)).reduce((sum, row) => sum + (Math.round(Number(row.loan.monthly_payment)) || 0), 0);
   return { declared_monthly_income: Number(finances.monthly_income) || 0, declared_monthly_expenses: Number(finances.monthly_expenses) || 0, existing_debt_payment: existing };
 }
 const collection = (data: Row[]) => response({ data, current_page: 1, last_page: 1, total: data.length });
