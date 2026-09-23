@@ -14,6 +14,8 @@ import {
   type ClientProfile,
 } from "@/api/profile";
 import { callApp } from "@/shared/ui/legacy";
+import { CfField } from "@/shared/ui/CfField";
+import { formatAmount, parseAmount } from "@/shared/format/money";
 import { isApiError } from "@/api/errors";
 import { getUiSession } from "@/app/session";
 import {
@@ -65,6 +67,17 @@ function Section({
                   <option key={value}>{value}</option>
                 ))}
               </select>
+            ) : field.type === "number" ? (
+              <CfField
+                kind="amount"
+                name={field.key}
+                required={field.required}
+                defaultValue={
+                  values[field.key]
+                    ? formatAmount(Number(String(values[field.key]).replace(/\s/g, "")))
+                    : ""
+                }
+              />
             ) : (
               <input
                 className="form-control"
@@ -72,8 +85,6 @@ function Section({
                 defaultValue={values[field.key] ?? ""}
                 type={field.type ?? "text"}
                 required={field.required}
-                min={field.type === "number" ? 0 : undefined}
-                step={field.type === "number" ? "any" : undefined}
                 maxLength={2000}
               />
             )}
@@ -253,7 +264,12 @@ export function SavingsMembershipModal() {
         .filter(
           (entry): entry is [string, string] => typeof entry[1] === "string",
         )
-        .map(([key, value]) => [key, value.trim()]),
+        .map(([key, value]) => [
+          key,
+          key === "monthly_income" || key === "annual_turnover"
+            ? String(parseAmount(value) ?? "")
+            : value.trim(),
+        ]),
     );
     const invalid = validateMembership(fields, data, legal, retained);
     if (invalid) {

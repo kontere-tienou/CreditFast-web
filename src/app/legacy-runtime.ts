@@ -1,5 +1,6 @@
 import { ROLE_PROFILES, VIEW_PATHS } from '@/app/roles';
 import { getUiSession } from '@/app/session';
+import { formatAmount } from '@/shared/format/money';
 import { toast } from '@heroui/react';
 import { fetchClientProfile, hasActiveSavingsAccount, hasRequiredIdentityDocument, listKycDocuments } from '@/api/profile';
 import { readSavingsSession, writeSavingsSession, clearSavingsSession, type LoanIntent } from '@/features/savings/workflow';
@@ -27,6 +28,7 @@ type LegacyApp = {
   markDocReceivedFromDrawer?: () => void;
   triggerDrawerFileUpload?: () => void;
   openAnalyst360FromAgent?: () => void;
+  openAnalyst360Modal?: () => void;
   openAnalystDossierDrawer?: (identifier?: string) => void;
   requestComplementFromAnalystDrawer?: () => void;
   submitHumanValidationFromDrawer?: (...args: unknown[]) => void;
@@ -35,6 +37,7 @@ type LegacyApp = {
   closeAnomalyDrawer?: () => void;
   resolveAnomalyFromDrawer?: () => void;
   saveInspectionReport?: () => void;
+  openInspectionModalFromDrawer?: () => void;
   closeAnalystDossierDrawer?: () => void;
   closeAgentDrawer?: () => void;
   openCommitteeDrawer?: (identifier?: string) => void;
@@ -152,8 +155,7 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
     field.dispatchEvent(new Event('input', { bubbles: true }));
   };
 
-  const formatLocalFcfa = (value: number) =>
-    new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(value || 0)).replace(/\u202f/g, ' ') + ' FCFA';
+  const formatLocalFcfa = (value: number) => `${formatAmount(value)} FCFA`;
 
   const ensureWizardCalculationListeners = () => {
     ['wiz-income', 'wiz-expenses', 'wiz-debt', 'wiz-amount', 'wiz-duration'].forEach((id) => {
@@ -336,8 +338,6 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
     setFieldValue('wiz-amount', prefill?.amount);
     setFieldValue('wiz-duration', prefill?.duration);
     setFieldValue('wiz-purpose', prefill?.purpose);
-    setFieldValue('wiz-income', prefill?.income);
-    setFieldValue('wiz-expenses', prefill?.expenses);
     showBackdrop('modal-loan-application', true);
     clearSavingsSession(savingsOwner, 'loan');
     app.updateWizardCalculation?.();
@@ -388,6 +388,9 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   };
   app.openAnalyst360FromAgent = () => {
     void import('@/features/agent/fillAgentDrawers').then(({ openAnalyst360FromAgent }) => openAnalyst360FromAgent());
+  };
+  app.openAnalyst360Modal = () => {
+    void import('@/features/agent/fillAgentDrawers').then(({ openAnalyst360Modal }) => openAnalyst360Modal());
   };
   app.openInspectionDrawer = (identifier) => {
     void import('@/features/agent/fillAgentDrawers').then(({ fillAndOpenInspectionDrawer }) => fillAndOpenInspectionDrawer(identifier));
@@ -477,6 +480,9 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   app.downloadAllSignedPvsCsv = () => undefined;
   app.saveInspectionReport = () => {
     void import('@/features/agent/fillAgentDrawers').then(({ saveInspectionReport }) => saveInspectionReport());
+  };
+  app.openInspectionModalFromDrawer = () => {
+    void import('@/features/agent/fillAgentDrawers').then(({ openInspectionModalFromDrawer }) => openInspectionModalFromDrawer());
   };
 
   app.openClientRequestDrawer = (identifier) => {

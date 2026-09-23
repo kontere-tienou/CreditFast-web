@@ -1,13 +1,17 @@
 import { toast } from '@heroui/react';
+import { formatAmount, parseAmount } from '@/shared/format/money';
 import {
   getCreditGuarantee,
   getCreditRequest,
   guaranteeHasFile,
+  guaranteeStatusLabel,
+  guaranteeTypeLabel,
   listAgentRequests,
   listCreditRequestDocuments,
   listCreditRequestGuarantees,
-  loadCreditAnalysis,
   requestComplements,
+  COMPLEMENT_SUBJECTS,
+  type ComplementSubject,
   verifyGuarantee,
   submitAnalystReview,
   submitHumanValidation,
@@ -23,7 +27,7 @@ import type { KycDocument } from '@/api/profile';
 import { isApiError } from '@/api/errors';
 import { getUiSession } from '@/app/session';
 import { documentCheck, identityCheck, isDocumentRejected } from '@/features/workflow/compliance';
-import { borrowerName, creditStatusLabel, formatDate, formatFcfa, getSelectedCreditRequestId, notifyRequestsChanged, setSelectedCreditRequestId } from '@/features/workflow/workflow';
+import { borrowerName, creditStatusLabel, formatDate, formatFcfa, getSelectedCreditRequestId, notifyRequestsChanged, setSelectedCreditRequestId, stageLockMessage } from '@/features/workflow/workflow';
 
 function setText(id: string, value: string) {
   const node = document.getElementById(id);
@@ -56,6 +60,115 @@ function showBackdrop(id: string, visible = true) {
 function dash(value?: string | null) {
   const trimmed = value?.trim();
   return trimmed || '—';
+}
+
+const INSPECTION_CONDITIONS: Record<string, string> = {
+  EXCELLENT: 'Excellent état',
+  BON: 'Bon état',
+  MOYEN: 'État moyen',
+  MAUVAIS: 'Mauvais état',
+};
+
+const INSPECTION_REPUTATION: Record<string, string> = {
+  TRES_FAVORABLE: 'Très favorable',
+  FAVORABLE: 'Favorable',
+  RESERVE: 'Réserves',
+};
+
+function inspectionLabel(map: Record<string, string>, value?: string | null) {
+  const key = (value || '').trim();
+  return key ? map[key] || key : '—';
+}
+
+function coverageLabel(amount?: number | null, verified?: number | null) {
+  if (verified == null || amount == null || !Number.isFinite(verified) || !Number.isFinite(amount) || amount <= 0) {
+    return '—';
+  }
+  return `${Math.round((verified / amount) * 100)} %`;
+}
+
+function discountLabel(declared?: number | null, verified?: number | null) {
+  if (declared == null || verified == null || !Number.isFinite(declared) || !Number.isFinite(verified) || declared <= 0) {
+    return '—';
+  }
+  return `${(((declared - verified) / declared) * 100).toFixed(1).replace('.', ',')} %`;
+}
+
+function guaranteeTone(status?: string) {
+  const key = (status || 'PENDING').toUpperCase();
+  if (key === 'VERIFIED') {
+    return 'badge badge-approved';
+  }
+  if (key === 'REJECTED') {
+    return 'badge badge-rejected';
+  }
+  return 'badge badge-submitted';
+}
+
+function setBadge(id: string, label: string, className: string) {
+  const node = document.getElementById(id);
+  if (!node) {
+    return;
+  }
+  node.textContent = label;
+  node.className = className;
+}
+
+function applyStageLock(noteId: string, buttonIds: string[], status: string | undefined, actor: 'agent' | 'analyst' | 'committee') {
+  const message = stageLockMessage(status, actor);
+  const note = document.getElementById(noteId);
+  if (note) {
+    note.hidden = !message;
+    note.textContent = message || '';
+  }
+  for (const id of buttonIds) {
+    const button = document.getElementById(id) as HTMLButtonElement | null;
+    if (!button) {
+      continue;
+    }
+    button.classList.toggle('is-stage-locked', Boolean(message));
+    if (message) {
+      button.disabled = true;
+      button.title = message;
+    }
+  }
+  return message;
+}
+
+function setFieldValue(id: string, value: string) {
+  const node = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | null;
+  if (node) {
+    node.value = value;
+  }
+}
+
+function renderInspectionProof(guarantee: CreditGuarantee, requestId: number) {
+  const box = document.getElementById('insp-drawer-proofs');
+  const count = document.getElementById('insp-drawer-proof-count');
+  if (!box) {
+    return;
+  }
+  box.replaceChildren();
+  if (!guaranteeHasFile(guarantee)) {
+    if (count) {
+      count.textContent = 'Aucun fichier';
+    }
+    box.textContent = 'Aucun justificatif joint à cette garantie.';
+    return;
+  }
+  if (count) {
+    count.textContent = '1 fichier';
+  }
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'btn btn-secondary btn-sm';
+  button.textContent = guarantee.original_filename || 'Voir le justificatif';
+  button.onclick = () => {
+    void import('@/features/workflow/fillDocLightbox').then(({ openDocLightbox }) =>
+      openDocLightbox(`GUARANTEE-${requestId}-${guarantee.id}`),
+    );
+  };
+  box.appendChild(button);
 }
 
 function phoneHref(phone?: string | null, scheme: 'tel' | 'sms' = 'tel') {
@@ -276,55 +389,31 @@ function buildDecisionChecks(input: {
   };
 }
 
-function nextActionForAgent(checks: ReturnType<typeof buildDecisionChecks>, analysis: CreditAnalysis | null) {
+function nextActionForAgent(checks: ReturnType<typeof buildDecisionChecks>) {
   if (checks.hasBlockingIssue) {
     return 'Demander des compléments';
   }
   if (!checks.kycVerified) {
-    return 'Valider le KYC';
+    return 'Valider l’identité';
   }
   if (!checks.guaranteeVerified) {
-    return 'Planifier le contrôle terrain';
-  }
-  if (!analysis) {
-    return 'Lancer l’analyse 360°';
+    return 'Faire le contrôle terrain';
   }
   return 'Transmettre à l’analyste';
 }
 
-function nextActionForAnalyst(checks: ReturnType<typeof buildDecisionChecks>, signalCount: number, analysis: CreditAnalysis | null) {
+function nextActionForAnalyst(checks: ReturnType<typeof buildDecisionChecks>, signalCount: number) {
   if (checks.hasBlockingIssue || signalCount > 0) {
     return 'Demander des compléments';
-  }
-  if (!analysis) {
-    return 'Calculer le score';
-  }
-  const key = (analysis.recommendation || '').toUpperCase();
-  if (key === 'UNFAVORABLE') {
-    return 'Justifier l’avis défavorable';
   }
   return 'Transmettre au comité';
 }
 
-function decisionSummary(analysis: CreditAnalysis | null, checks: ReturnType<typeof buildDecisionChecks>, nextAction: string) {
-  const score = formatScore(analysis?.overall_score);
-  if (!analysis) {
-    return `Le dossier doit encore être stabilisé avant décision. Action recommandée : ${nextAction}.`;
+function decisionSummary(checks: ReturnType<typeof buildDecisionChecks>, nextAction: string) {
+  if (checks.hasBlockingIssue || checks.hasWarning) {
+    return `Le dossier reste à cette étape. Action recommandée : ${nextAction}.`;
   }
-  const risk =
-    score == null
-      ? 'non déterminé'
-      : score >= 75
-        ? 'faible'
-        : score >= 60
-          ? 'modéré'
-          : 'élevé';
-  const status = checks.hasBlockingIssue
-    ? 'des blocages doivent être levés'
-    : checks.hasWarning
-      ? 'des points restent à confirmer'
-      : 'les contrôles principaux sont satisfaits';
-  return `Score ${score ?? '—'}/100, risque ${risk} : ${status}. Action recommandée : ${nextAction}.`;
+  return `Les contrôles de l’étape sont réunis. Action recommandée : ${nextAction}.`;
 }
 
 function scoringFactors(analysis: CreditAnalysis | null) {
@@ -398,14 +487,12 @@ function buildWorkflowTimeline(input: {
   analysis: CreditAnalysis | null;
   target: 'agent' | 'analyst';
 }) {
-  const { row, docs, guarantees, identityDocs, checks, analysis, target } = input;
+  const { row, docs, guarantees, identityDocs, checks, target } = input;
   const docsDate = latestDate([...docs.map((doc) => doc.uploaded_at), ...identityDocs.map((doc) => doc.uploaded_at)]);
   const guaranteeDate = latestDate(guarantees.map((item) => item.verified_at || item.created_at));
-  const analysisDate = analysis?.created_at ?? null;
   const submittedDate = row.submitted_at || row.created_at;
   const docsReady = checks.docsOk && checks.kycVerified;
   const guaranteeStarted = guarantees.length > 0;
-  const scoringReady = docsReady && checks.guaranteeVerified && checks.capacityOk;
   const analysisDone = isCommitteeOrLater(row);
 
   const finalLabel = target === 'agent' ? 'Analyse risque' : 'Comité de crédit';
@@ -449,14 +536,24 @@ function buildWorkflowTimeline(input: {
       date: guaranteeDate,
     },
     {
-      label: 'Scoring microcrédit',
-      detail: analysis
-        ? `Score calculé : ${formatScore(analysis.overall_score) ?? '—'}/100.`
-        : scoringReady
-          ? 'Dossier prêt pour le calcul du score.'
-          : 'Score en attente des contrôles préalables.',
-      state: analysis ? 'done' : scoringReady ? 'active' : 'todo',
-      date: analysisDate,
+      label: target === 'agent' ? 'Transmission à l’analyste' : 'Transmission au comité',
+      detail: target === 'agent'
+        ? isAnalysisStatus(row) || analysisDone
+          ? 'L’agent a transmis le dossier.'
+          : 'Le dossier reste chez l’agent tant qu’il n’a pas transmis.'
+        : isCommitteeOrLater(row)
+          ? 'L’analyste a transmis le dossier.'
+          : 'Le dossier reste en analyse tant qu’il n’est pas transmis.',
+      state: target === 'agent'
+        ? isAnalysisStatus(row) || analysisDone
+          ? 'done'
+          : 'active'
+        : isCommitteeOrLater(row)
+          ? 'done'
+          : isAnalysisStatus(row)
+            ? 'active'
+            : 'todo',
+      date: null,
     },
     {
       label: finalLabel,
@@ -578,7 +675,7 @@ function buildComplementIssue(input: {
     return {
       category: 'KYC',
       title: pending ? documentName(pending) : 'KYC à confirmer',
-      reason: 'L’identité est présente mais attend encore une validation agent. Cette étape sécurise le dossier avant scoring.',
+      reason: 'L’identité est présente mais attend encore une validation agent avant la transmission.',
       impact: 'Transmission analyste non sécurisée',
       deadline: 'Avant transmission analyste',
       severity: 'warn',
@@ -593,8 +690,8 @@ function buildComplementIssue(input: {
       title: documentName(doc),
       reason: rejectedDoc
         ? 'Cette pièce est non conforme après contrôle. Le client doit transmettre une version lisible, récente et cohérente avec la demande.'
-        : 'Cette pièce nécessite un complément ou une reprise avant que le score documentaire puisse être considéré comme fiable.',
-      impact: 'Score documentaire pénalisé',
+        : 'Cette pièce nécessite un complément ou une reprise avant la transmission.',
+      impact: 'Pièce à reprendre',
       deadline: '48 heures ouvrées',
       severity: rejectedDoc ? 'bad' : 'warn',
       documentId: doc?.id,
@@ -896,7 +993,7 @@ function buildDossierAuditTrail(input: {
   analysis: CreditAnalysis | null;
   target: 'agent' | 'analyst';
 }) {
-  const { row, docs, guarantees, identityDocs, analysis, target } = input;
+  const { row, docs, guarantees, identityDocs, target } = input;
   const status = statusKey(row);
   const docsDate = latestDate([...docs.map((doc) => doc.uploaded_at), ...identityDocs.map((doc) => doc.uploaded_at)]);
   const docsRejected = docs.filter((doc) => documentCheck(doc.status).tone === 'bad').length;
@@ -905,7 +1002,6 @@ function buildDossierAuditTrail(input: {
   const guaranteeDate = latestDate(guarantees.map((item) => item.verified_at || item.created_at));
   const guaranteeVerified = guarantees.some((item) => isVerifiedStatus(item.verification_status));
   const guaranteeRejected = guarantees.some((item) => isRejectedStatus(item.verification_status));
-  const score = formatScore(analysis?.overall_score);
   const events: AuditEvent[] = [];
 
   events.push({
@@ -933,8 +1029,8 @@ function buildDossierAuditTrail(input: {
   if (['VERIFICATION_REQUIRED', 'TO_COMPLETE', 'INCOMPLETE'].includes(status)) {
     events.push({
       title: 'Complément demandé',
-      detail: 'Le dossier a été renvoyé au client pour pièce manquante, pièce non conforme ou garantie à compléter.',
-      actor: target === 'agent' ? 'Agent de crédit' : 'Analyste risque',
+      detail: row.complement_detail || 'Le dossier a été renvoyé au client pour pièce manquante, pièce non conforme ou garantie à compléter.',
+      actor: row.committee_decision?.decision === 'VERIFICATION_REQUIRED' ? 'Comité de crédit' : target === 'agent' ? 'Agent de crédit' : 'Analyste risque',
       date: latestDate([docsDate, row.submitted_at, row.created_at]),
       icon: 'fa-paper-plane',
       state: 'warn',
@@ -956,27 +1052,16 @@ function buildDossierAuditTrail(input: {
     state: guaranteeVerified ? 'done' : 'warn',
   });
 
-  events.push({
-    title: 'Scoring microcrédit',
-    detail: analysis
-      ? `Score ${score ?? '—'}/100, confiance ${formatScore(analysis.confidence_score) ?? '—'}%, recommandation ${scoringLabel(analysis.recommendation).toLowerCase()}.`
-      : 'Score non calculé ou non disponible. La décision humaine doit attendre un dossier stabilisé.',
-    actor: 'Moteur scoring',
-    date: analysis?.created_at,
-    icon: 'fa-chart-line',
-    state: analysis ? 'done' : 'active',
-  });
-
   if (isAnalysisStatus(row) || isCommitteeOrLater(row) || isFinalDecision(row)) {
     events.push({
       title: 'Avis analyste',
-      detail: analysis
-        ? `Avis préparé pour le comité : ${scoringLabel(analysis.recommendation).toLowerCase()}.`
+      detail: isCommitteeOrLater(row) || isFinalDecision(row)
+        ? 'L’analyste a transmis son avis au comité.'
         : 'Dossier en file analyste, avis attendu.',
       actor: 'Analyste risque',
-      date: analysis?.created_at,
+      date: null,
       icon: 'fa-user-check',
-      state: analysis ? 'done' : 'active',
+      state: isCommitteeOrLater(row) || isFinalDecision(row) ? 'done' : 'active',
     });
   }
 
@@ -1123,11 +1208,10 @@ export async function fillAndOpenAgentDrawer(identifier?: string) {
   setSelectedCreditRequestId(row.id);
 
   const clientId = row.client_id ?? row.client?.id;
-  const [docs, guarantees, fiche, analysis, kycDocs] = await Promise.all([
+  const [docs, guarantees, fiche, kycDocs] = await Promise.all([
     listCreditRequestDocuments(row.id).catch(() => []),
     listCreditRequestGuarantees(row.id).catch(() => [] as CreditGuarantee[]),
     loadFiche(row),
-    loadCreditAnalysis(row.id).catch(() => null),
     clientId ? listAgentClientKycDocuments(clientId).catch(() => [] as KycDocument[]) : Promise.resolve([] as KycDocument[]),
   ]);
 
@@ -1252,7 +1336,6 @@ export async function fillAndOpenAgentDrawer(identifier?: string) {
       }
     };
   }
-  applyScore(analysis);
   const ready =
     docs.length > 0 &&
     !docs.some(isDocumentRejected) &&
@@ -1266,11 +1349,7 @@ export async function fillAndOpenAgentDrawer(identifier?: string) {
     borrowerKyc: borrower.kyc,
     disposable,
   });
-  const nextAction = nextActionForAgent(decisionChecks, analysis);
-  setText('agent-drawer-next-action', nextAction);
-  setText('agent-drawer-decision-summary', decisionSummary(analysis, decisionChecks, nextAction));
-  setHtml('agent-drawer-decision-checklist', renderDecisionChecklist(decisionChecks.items));
-  setHtml('agent-drawer-score-factors', renderDecisionFactors(scoringFactors(analysis)));
+  const nextAction = nextActionForAgent(decisionChecks);
   setHtml(
     'agent-drawer-workflow-timeline',
     renderWorkflowTimeline(
@@ -1280,13 +1359,13 @@ export async function fillAndOpenAgentDrawer(identifier?: string) {
         guarantees,
         identityDocs,
         checks: decisionChecks,
-        analysis,
+        analysis: null,
         target: 'agent',
       }),
     ),
   );
   setText('agent-drawer-timeline-badge', creditStatusLabel(row.status));
-  const agentAuditEvents = buildDossierAuditTrail({ row, docs, guarantees, identityDocs, analysis, target: 'agent' });
+  const agentAuditEvents = buildDossierAuditTrail({ row, docs, guarantees, identityDocs, analysis: null, target: 'agent' });
   setHtml('agent-drawer-audit-trail', renderDossierAuditTrail(agentAuditEvents));
   setText('agent-drawer-audit-badge', `${agentAuditEvents.length} trace${agentAuditEvents.length > 1 ? 's' : ''}`);
   const transfer = document.getElementById('agent-drawer-btn-transfer') as HTMLButtonElement | null;
@@ -1297,13 +1376,19 @@ export async function fillAndOpenAgentDrawer(identifier?: string) {
       ? 'Transmettre à l’analyste'
       : 'Pièces conformes, garantie et contrôle terrain sont requis.';
   }
-  const analyse = document.getElementById('agent-drawer-btn-360') as HTMLButtonElement | null;
-  if (analyse) {
-    analyse.style.gridColumn = ready ? 'auto' : '1 / -1';
-  }
-  const complements = document.getElementById('agent-drawer-btn-complements');
+  const complements = document.getElementById('agent-drawer-btn-complements') as HTMLButtonElement | null;
   if (complements) {
+    complements.disabled = false;
     complements.className = `btn btn-sm agent-drawer-footer-btn ${ready ? 'btn-secondary' : 'btn-primary'}`;
+  }
+  const inspection = document.getElementById('agent-drawer-btn-inspection') as HTMLButtonElement | null;
+  if (inspection) {
+    inspection.disabled = false;
+    inspection.title = '';
+  }
+  const agentLock = applyStageLock('agent-drawer-lock', ['agent-drawer-btn-complements', 'agent-drawer-btn-inspection', 'agent-drawer-btn-transfer'], row.status, 'agent');
+  if (agentLock && transfer) {
+    transfer.style.display = '';
   }
   showBackdrop('agent-drawer-backdrop');
 }
@@ -1326,31 +1411,50 @@ export async function verifyIdentityFromDrawer(
   }
 }
 
-export async function requestComplementsFromAgentDrawer() {
+export async function submitStructuredComplement(input: {
+  subject: ComplementSubject;
+  detail: string;
+  channel: 'agent' | 'analyst';
+}) {
   const id = getSelectedCreditRequestId();
   if (!id) {
     toast.info('Aucun dossier sélectionné.');
-    return;
+    return false;
   }
-  const comment = window.prompt(
-    'Message au client (min. 5 caractères) :',
-    'Merci de joindre les pièces justificatives et de déclarer une garantie pour que le dossier puisse être transmis à l’analyste.',
-  );
-  if (comment == null) {
-    return;
+  const detail = input.detail.trim();
+  if (detail.length < 5) {
+    toast.warning('Précisez la demande en au moins 5 caractères.');
+    return false;
   }
-  if (comment.trim().length < 5) {
-    toast.warning('Le commentaire doit contenir au moins 5 caractères.');
-    return;
+  if (await refuseIfLocked(id, input.channel === 'analyst' ? 'analyst' : 'agent')) {
+    return false;
   }
   try {
-    await requestComplements(id, comment.trim());
+    if (input.channel === 'analyst') {
+      await submitAnalystReview(id, {
+        recommendation: 'RESERVED',
+        comment: `${COMPLEMENT_SUBJECTS[input.subject]} — ${detail}`,
+        next_step: 'VERIFICATION_REQUIRED',
+        subject: input.subject,
+        detail,
+      });
+      showBackdrop('analyst-drawer-backdrop', false);
+      showBackdrop('dossier-modal', false);
+    } else {
+      await requestComplements(id, { subject: input.subject, detail });
+      await fillAndOpenAgentDrawer(String(id));
+    }
     notifyRequestsChanged();
-    toast.success('Compléments demandés. Le demandeur est notifié dans son espace.');
-    await fillAndOpenAgentDrawer(String(id));
+    toast.success('Complément demandé. Le demandeur le voit en priorité.');
+    return true;
   } catch (error) {
     toast.danger(isApiError(error) ? error.message : 'Impossible de demander des compléments.');
+    return false;
   }
+}
+
+export async function requestComplementsFromAgentDrawer() {
+  toast.info('Choisissez le sujet du complément dans le dossier.');
 }
 
 export async function fillAndOpenInspectionDrawer(identifier?: string) {
@@ -1386,46 +1490,78 @@ export async function fillAndOpenInspectionDrawer(identifier?: string) {
   }
   const fiche = await loadFiche(match.request);
   const name = mergeBorrower(match.request, fiche).name;
+  const statusLabel = guaranteeStatusLabel(guarantee.verification_status);
+  const statusClass = guaranteeTone(guarantee.verification_status);
   setText('insp-drawer-title', `Inspection • Dossier #${match.request.id}`);
+  setText('insp-drawer-type-badge', guaranteeTypeLabel(guarantee.guarantee_type));
+  setBadge('insp-drawer-status-badge', statusLabel, statusClass);
+  setBadge('insp-drawer-eval-status', statusLabel, statusClass);
   setText('insp-drawer-req-num', `#${match.request.id}`);
   setText('insp-drawer-client-name', name);
   setText('insp-drawer-client-loc', dash(locationFrom(fiche, match.request)));
   setText('insp-drawer-loan-amount', formatFcfa(match.request.requested_amount));
+  setText('insp-drawer-coverage-ratio', coverageLabel(match.request.requested_amount, guarantee.verified_value));
   setText('insp-drawer-val-declared', formatFcfa(guarantee.declared_value));
   setText('insp-drawer-val-verified', formatFcfa(guarantee.verified_value));
+  setText('insp-drawer-discount-pct', discountLabel(guarantee.declared_value, guarantee.verified_value));
   setText('insp-drawer-desc', guarantee.description || '—');
-  const status = document.getElementById('insp-drawer-status-badge');
-  if (status) {
-    status.textContent = guarantee.verification_status || 'PENDING';
+  setText('insp-drawer-location', dash(guarantee.inspection_location));
+  setText('insp-drawer-condition', inspectionLabel(INSPECTION_CONDITIONS, guarantee.inspection_condition));
+  setText('insp-drawer-reputation', inspectionLabel(INSPECTION_REPUTATION, guarantee.inspection_reputation));
+  setText('insp-drawer-notes', dash(guarantee.inspection_notes));
+  const avatar = document.getElementById('insp-drawer-client-avatar') as HTMLImageElement | null;
+  if (avatar) {
+    avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Client')}&background=1b4332&color=fff`;
+    avatar.alt = name;
   }
   setText('insp-client-name', `${name} • #${match.request.id}`);
-  setText('insp-guarantee-type', guarantee.guarantee_type || '—');
+  setText('insp-guarantee-type', guaranteeTypeLabel(guarantee.guarantee_type));
   const hidden = document.getElementById('insp-guarantee-id') as HTMLInputElement | null;
   if (hidden) {
     hidden.value = String(guarantee.id);
   }
-  const declared = document.getElementById('insp-declared-val') as HTMLInputElement | null;
-  if (declared) {
-    declared.value = guarantee.declared_value != null ? String(guarantee.declared_value) : '';
-  }
-  const fileRow = document.getElementById('insp-drawer-file-row');
-  const fileBtn = document.getElementById('insp-drawer-btn-file');
-  if (fileRow && fileBtn) {
-    const canView = guaranteeHasFile(guarantee);
-    fileRow.style.display = canView ? '' : 'none';
-    fileBtn.onclick = () => {
-      void import('@/features/workflow/fillDocLightbox').then(({ openDocLightbox }) =>
-        openDocLightbox(`GUARANTEE-${match!.request.id}-${guarantee.id}`),
-      );
-    };
+  setFieldValue('insp-declared-val', guarantee.declared_value != null ? formatAmount(guarantee.declared_value) : '');
+  setFieldValue('insp-verified-val', guarantee.verified_value != null ? formatAmount(guarantee.verified_value) : '');
+  setFieldValue('insp-location', guarantee.inspection_location || '');
+  setFieldValue('insp-notes', guarantee.inspection_notes || '');
+  renderInspectionProof(guarantee, match.request.id);
+  const inspectionLock = applyStageLock('insp-drawer-lock', ['insp-drawer-btn-edit'], match.request.status, 'agent');
+  if (!inspectionLock) {
+    const edit = document.getElementById('insp-drawer-btn-edit') as HTMLButtonElement | null;
+    if (edit) {
+      edit.disabled = false;
+      edit.title = '';
+    }
   }
   showBackdrop('inspection-drawer-backdrop');
+}
+
+export function openInspectionModalFromDrawer() {
+  const hidden = document.getElementById('insp-guarantee-id') as HTMLInputElement | null;
+  if (!hidden?.value) {
+    toast.info('Aucune garantie sélectionnée.');
+    return;
+  }
+  showBackdrop('modal-inspection');
+}
+
+async function refuseIfLocked(id: number, actor: 'agent' | 'analyst' | 'committee') {
+  const row = await loadRequest(id);
+  const message = row ? stageLockMessage(row.status, actor) : null;
+  if (message) {
+    toast.info(message);
+    return true;
+  }
+  return false;
 }
 
 export async function openInspectionFromAgentDrawer() {
   const id = getSelectedCreditRequestId();
   if (!id) {
     toast.info('Ouvrez d’abord un dossier.');
+    return;
+  }
+  if (await refuseIfLocked(id, 'agent')) {
     return;
   }
   const items = await listCreditRequestGuarantees(id).catch(() => [] as CreditGuarantee[]);
@@ -1445,12 +1581,24 @@ export async function saveInspectionReport() {
     toast.info('Aucune garantie sélectionnée.');
     return;
   }
+  const requestId = getSelectedCreditRequestId();
+  if (requestId && (await refuseIfLocked(requestId, 'agent'))) {
+    return;
+  }
   const verifiedRaw = (document.getElementById('insp-verified-val') as HTMLInputElement | null)?.value;
-  const verifiedValue = verifiedRaw ? Number(verifiedRaw) : undefined;
+  const verifiedValue = verifiedRaw ? parseAmount(verifiedRaw) ?? undefined : undefined;
+  const location = (document.getElementById('insp-location') as HTMLInputElement | null)?.value.trim() || '';
+  const condition = (document.getElementById('insp-condition') as HTMLSelectElement | null)?.value.trim() || '';
+  const reputation = (document.getElementById('insp-reputation') as HTMLSelectElement | null)?.value.trim() || '';
+  const notes = (document.getElementById('insp-notes') as HTMLTextAreaElement | null)?.value.trim() || '';
   try {
     await verifyGuarantee(id, {
       verification_status: 'VERIFIED',
       verified_value: verifiedValue != null && !Number.isNaN(verifiedValue) ? verifiedValue : undefined,
+      ...(location ? { inspection_location: location } : {}),
+      ...(condition ? { inspection_condition: condition } : {}),
+      ...(reputation ? { inspection_reputation: reputation } : {}),
+      ...(notes ? { inspection_notes: notes } : {}),
     });
     notifyRequestsChanged();
     showBackdrop('modal-inspection', false);
@@ -1517,11 +1665,27 @@ export async function fillAndOpenComplementsDrawer(identifier?: string) {
     avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(borrower.name)}&background=4f46e5&color=fff`;
   }
   const validate = document.getElementById('comp-drawer-btn-validate') as HTMLButtonElement | null;
+  const remind = document.getElementById('comp-drawer-btn-remind') as HTMLButtonElement | null;
+  const upload = document.getElementById('comp-drawer-upload') as HTMLElement | null;
+  const complementLock = stageLockMessage(row.status, 'agent');
   if (validate) {
     const hasReceivable = Boolean(issue.documentId || issue.kycDocumentId || docs.length);
-    validate.disabled = !hasReceivable;
-    validate.style.opacity = hasReceivable ? '' : '0.65';
-    validate.title = hasReceivable ? 'Marquer la pièce reçue comme conforme' : 'Aucune pièce reçue à valider';
+    validate.disabled = Boolean(complementLock) || !hasReceivable;
+    validate.style.opacity = validate.disabled ? '0.65' : '';
+    validate.title = complementLock || (hasReceivable ? 'Marquer la pièce reçue comme conforme' : 'Aucune pièce reçue à valider');
+  }
+  if (remind) {
+    remind.disabled = Boolean(complementLock);
+    remind.title = complementLock || '';
+  }
+  if (upload) {
+    upload.style.pointerEvents = complementLock ? 'none' : '';
+    upload.style.opacity = complementLock ? '0.65' : '';
+  }
+  const complementNote = document.getElementById('comp-drawer-lock');
+  if (complementNote) {
+    complementNote.hidden = !complementLock;
+    complementNote.textContent = complementLock || '';
   }
   showBackdrop('complements-drawer-backdrop');
 }
@@ -1530,6 +1694,9 @@ export async function triggerReminderFromDrawer() {
   const id = getSelectedCreditRequestId();
   if (!id) {
     toast.info('Aucun dossier sélectionné.');
+    return;
+  }
+  if (await refuseIfLocked(id, 'agent')) {
     return;
   }
   const context = await loadComplementContext(id);
@@ -1546,7 +1713,7 @@ export async function triggerReminderFromDrawer() {
     return;
   }
   try {
-    await requestComplements(context.row.id, message.trim());
+    await requestComplements(context.row.id, { subject: 'INFORMATION', detail: message.trim() });
     notifyRequestsChanged();
     toast.success('Relance envoyée. Le journal du dossier est rafraîchi.');
     await fillAndOpenComplementsDrawer(String(context.row.id));
@@ -1559,6 +1726,9 @@ export async function markDocReceivedFromDrawer() {
   const id = getSelectedCreditRequestId();
   if (!id) {
     toast.info('Aucun dossier sélectionné.');
+    return;
+  }
+  if (await refuseIfLocked(id, 'agent')) {
     return;
   }
   const context = await loadComplementContext(id);
@@ -1597,7 +1767,11 @@ export async function markDocReceivedFromDrawer() {
   }
 }
 
-export function triggerDrawerFileUpload() {
+export async function triggerDrawerFileUpload() {
+  const id = getSelectedCreditRequestId();
+  if (id && (await refuseIfLocked(id, 'agent'))) {
+    return;
+  }
   toast.info('Dépôt direct agent prévu côté mobile/GED. Pour l’instant, utilisez la relance client et le suivi des pièces.');
 }
 
@@ -1615,13 +1789,13 @@ export async function fillAndOpenAnalystDrawer(identifier?: string) {
   }
   setSelectedCreditRequestId(row.id);
   const clientId = row.client_id ?? row.client?.id;
-  const [docs, guarantees, fiche, analysis, kycDocs] = await Promise.all([
+  const [docs, guarantees, fiche, kycDocs] = await Promise.all([
     listCreditRequestDocuments(row.id).catch(() => []),
     listCreditRequestGuarantees(row.id).catch(() => [] as CreditGuarantee[]),
     loadFiche(row),
-    loadCreditAnalysis(row.id).catch(() => null),
     clientId ? listAgentClientKycDocuments(clientId).catch(() => [] as KycDocument[]) : Promise.resolve([] as KycDocument[]),
   ]);
+  const analysis = null;
   const identityDocs = kycDocs.length ? kycDocs : Array.isArray(fiche?.kyc_documents) ? fiche.kyc_documents : [];
   const borrower = mergeBorrower(row, fiche);
   const income = row.declared_monthly_income;
@@ -1662,14 +1836,17 @@ export async function fillAndOpenAnalystDrawer(identifier?: string) {
   setText('analyst-drawer-installment', formatFcfa(row.estimated_monthly_payment));
   const capBanner = document.getElementById('analyst-drawer-cap-banner');
   if (capBanner) {
-    const pass = disposable != null && row.estimated_monthly_payment != null && disposable >= row.estimated_monthly_payment;
-    capBanner.className = `capacity-comparison ${pass ? 'pass' : 'fail'}`;
+    const installment = row.estimated_monthly_payment;
+    const pass = disposable != null && installment != null && disposable >= installment;
+    capBanner.className = `capacity-comparison ${disposable == null || installment == null ? '' : pass ? 'pass' : 'fail'}`;
     capBanner.textContent =
       disposable == null
         ? 'Capacité non calculée en base.'
-        : pass
-          ? 'Reste à vivre supérieur à la mensualité estimée.'
-          : 'Reste à vivre inférieur à la mensualité estimée.';
+        : installment == null
+          ? 'Mensualité non calculée pour ce dossier.'
+          : pass
+            ? 'Reste à vivre supérieur à la mensualité estimée.'
+            : 'Reste à vivre inférieur à la mensualité estimée.';
   }
   setText('analyst-drawer-docs-count', `${docs.length} pièce${docs.length > 1 ? 's' : ''}`);
   const docsList = document.getElementById('analyst-drawer-docs-list');
@@ -1684,28 +1861,20 @@ export async function fillAndOpenAnalystDrawer(identifier?: string) {
                 <span style="font-size:0.8rem;font-weight:600">${doc.original_filename || doc.document_type || 'Pièce'}</span>
                 <span class="${check.badgeClass}" style="font-size:0.65rem">${check.label}</span>
               </div>
-              <p style="margin:0.35rem 0 0;font-size:0.72rem;color:var(--text-muted)">${excerpt || 'Lecture automatique après dépôt. Cliquez pour ouvrir.'}</p>
-              ${canReview ? `<div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.45rem">
-                <button type="button" class="btn btn-primary btn-sm" data-doc-decision="VALIDATED" data-doc-id="${doc.id}" style="font-size:0.68rem">Conforme</button>
-                <button type="button" class="btn btn-secondary btn-sm" data-doc-decision="TO_COMPLETE" data-doc-id="${doc.id}" style="font-size:0.68rem">À reprendre</button>
-                <button type="button" class="btn btn-secondary btn-sm" data-doc-decision="REJECTED" data-doc-id="${doc.id}" style="font-size:0.68rem">Non conforme</button>
+              <p style="margin:0.35rem 0 0;font-size:0.72rem;color:var(--text-muted)">${excerpt || 'Lecture automatique après dépôt.'}</p>
+              ${canReview ? `<div style="margin-top:0.45rem">
+                <button type="button" class="btn btn-secondary btn-sm" data-analyze-doc="CREDIT-${row.id}-${doc.id}" style="font-size:0.72rem"><i class="fas fa-magnifying-glass mr-1"></i> Analyser la pièce</button>
               </div>` : ''}
             </div>`;
           })
           .join('')
       : '<p style="margin:0;font-size:0.8rem;color:var(--text-muted)">Aucune pièce en base.</p>';
     docsList.onclick = (event) => {
-      const btn = (event.target as HTMLElement).closest<HTMLElement>('[data-doc-decision]');
-      if (btn) {
-        event.stopPropagation();
-        const documentId = Number(btn.dataset.docId);
-        const decision = btn.dataset.docDecision as 'VALIDATED' | 'TO_COMPLETE' | 'REJECTED';
-        void submitHumanValidationFromDrawer(decision, documentId);
-        return;
-      }
-      const open = (event.target as HTMLElement).closest<HTMLElement>('[data-open-doc]');
-      if (open?.dataset.openDoc) {
-        void import('@/features/workflow/fillDocLightbox').then(({ openDocLightbox }) => openDocLightbox(open.dataset.openDoc));
+      const analyze = (event.target as HTMLElement).closest<HTMLElement>('[data-analyze-doc]');
+      const open = analyze || (event.target as HTMLElement).closest<HTMLElement>('[data-open-doc]');
+      const key = analyze?.dataset.analyzeDoc || open?.dataset.openDoc;
+      if (key) {
+        void import('@/features/workflow/fillDocLightbox').then(({ openDocLightbox }) => openDocLightbox(key));
       }
     };
   }
@@ -1715,9 +1884,6 @@ export async function fillAndOpenAnalystDrawer(identifier?: string) {
   }
   if (docs.some(isDocumentRejected)) {
     signals.push('Au moins une pièce est non conforme après contrôle.');
-  }
-  if (analysis?.document_score != null && analysis.document_score < 50) {
-    signals.push('Le contrôle automatique des pièces est insuffisant.');
   }
   if (!guarantees.length) {
     signals.push('Aucune garantie déclarée.');
@@ -1733,9 +1899,9 @@ export async function fillAndOpenAnalystDrawer(identifier?: string) {
     borrowerKyc: borrower.kyc,
     disposable,
   });
-  const analystNextAction = nextActionForAnalyst(analystChecks, signals.length, analysis);
+  const analystNextAction = nextActionForAnalyst(analystChecks, signals.length);
   setText('analyst-drawer-next-action', analystNextAction);
-  setText('analyst-drawer-decision-summary', decisionSummary(analysis, analystChecks, analystNextAction));
+  setText('analyst-drawer-decision-summary', decisionSummary(analystChecks, analystNextAction));
   setHtml('analyst-drawer-decision-checklist', renderDecisionChecklist(analystChecks.items));
   setHtml(
     'analyst-drawer-workflow-timeline',
@@ -1794,18 +1960,83 @@ export async function fillAndOpenAnalystDrawer(identifier?: string) {
     reco.value = key === 'UNFAVORABLE' ? 'UNFAVORABLE' : key === 'RESERVED' ? 'RESERVED' : 'FAVORABLE';
   }
   const reviewActions = document.getElementById('analyst-drawer-review-actions');
+  const analystLock = stageLockMessage(row.status, 'analyst');
+  for (const id of ['analyst-drawer-btn-360', 'analyst-drawer-btn-committee', 'analyst-360-btn-complement']) {
+    const button = document.getElementById(id) as HTMLButtonElement | null;
+    if (button) {
+      button.disabled = Boolean(analystLock);
+      button.classList.toggle('is-stage-locked', Boolean(analystLock));
+      button.title = analystLock || '';
+    }
+  }
   if (reviewActions) {
     reviewActions.style.display = canReview ? '' : 'none';
   }
+  const analystNote = document.getElementById('analyst-drawer-lock');
+  if (analystNote) {
+    analystNote.hidden = !(canReview && analystLock);
+    analystNote.textContent = analystLock || '';
+  }
   setText('modal-dossier-ref', `#${row.id}`);
   setText('modal-client-name', borrower.name);
+  setText('modal-client-activity', dash(borrower.occupation));
   setText('modal-client-location', `${dash(borrower.location)} • ${dash(borrower.number)}`);
-  setText('modal-score-val', score != null ? String(score) : '—');
   setText('cap-income', formatFcfa(income));
   setText('cap-expenses', formatFcfa(expenses));
   setText('cap-disposable', formatFcfa(disposable));
   setText('cap-installment', formatFcfa(row.estimated_monthly_payment));
+  const modalBanner = document.getElementById('cap-banner');
+  if (modalBanner && capBanner) {
+    modalBanner.className = capBanner.className;
+    modalBanner.textContent = capBanner.textContent;
+  }
+  const modalDocs = document.getElementById('modal-docs-list');
+  if (modalDocs) {
+    modalDocs.innerHTML = docs.length
+      ? docs
+          .map((doc) => {
+            const check = documentCheck(doc.status);
+            const excerpt = doc.analysis_summary || (typeof doc.extracted_text === 'string' ? doc.extracted_text.slice(0, 140) : '');
+            return `<div data-open-doc="CREDIT-${row.id}-${doc.id}" style="padding:0.65rem 0.75rem;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;margin-bottom:0.5rem">
+              <div style="display:flex;justify-content:space-between;gap:0.5rem;align-items:center">
+                <span style="font-size:0.82rem;font-weight:650">${doc.original_filename || doc.document_type || 'Pièce'}</span>
+                <span class="${check.badgeClass}" style="font-size:0.65rem">${check.label}</span>
+              </div>
+              <p style="margin:0.35rem 0 0;font-size:0.74rem;color:var(--text-muted)">${excerpt || 'Ouvrir la pièce.'}</p>
+            </div>`;
+          })
+          .join('')
+      : '<p style="margin:0;font-size:0.8rem;color:var(--text-muted)">Aucune pièce en base.</p>';
+    modalDocs.onclick = (event) => {
+      const open = (event.target as HTMLElement).closest<HTMLElement>('[data-open-doc]');
+      if (open?.dataset.openDoc) {
+        void import('@/features/workflow/fillDocLightbox').then(({ openDocLightbox }) => openDocLightbox(open.dataset.openDoc));
+      }
+    };
+  }
+  const modalSignals = document.getElementById('modal-anomalies-list');
+  if (modalSignals) {
+    modalSignals.innerHTML = signals.length
+      ? signals.map((item) => `<div style="font-size:0.8rem;color:#991b1b;margin-bottom:0.4rem">${item}</div>`).join('')
+      : '<p style="margin:0;font-size:0.8rem;color:var(--text-muted)">Aucun signal automatique.</p>';
+  }
+  const recoField = document.getElementById('analyst-drawer-reco-select') as HTMLSelectElement | null;
+  const notesField = document.getElementById('analyst-drawer-notes-input') as HTMLTextAreaElement | null;
+  setText('modal-reco-text', recoField?.selectedOptions?.[0]?.textContent?.trim() || '—');
+  setText('modal-notes-text', notesField?.value.trim() || 'Aucune note saisie dans le tiroir.');
   showBackdrop('analyst-drawer-backdrop');
+}
+
+export async function openAnalyst360Modal() {
+  const id = getSelectedCreditRequestId();
+  if (!id) {
+    toast.info('Aucun dossier sélectionné.');
+    return;
+  }
+  if (await refuseIfLocked(id, 'analyst')) {
+    return;
+  }
+  showBackdrop('dossier-modal');
 }
 
 export async function openAnalyst360FromAgent() {
@@ -1815,36 +2046,7 @@ export async function openAnalyst360FromAgent() {
 }
 
 export async function requestComplementFromAnalystDrawer() {
-  const id = getSelectedCreditRequestId();
-  if (!id) {
-    toast.info('Aucun dossier sélectionné.');
-    return;
-  }
-  const comment = window.prompt('Motif des compléments (min. 5 caractères) :');
-  if (comment == null) {
-    return;
-  }
-  if (comment.trim().length < 5) {
-    toast.warning('Le commentaire doit contenir au moins 5 caractères.');
-    return;
-  }
-  try {
-    const role = getUiSession()?.role;
-    if (role === 'ANALYST' || role === 'ADMIN') {
-      await submitAnalystReview(id, {
-        recommendation: 'RESERVED',
-        comment: comment.trim(),
-        next_step: 'VERIFICATION_REQUIRED',
-      });
-    } else {
-      await requestComplements(id, comment.trim());
-    }
-    notifyRequestsChanged();
-    showBackdrop('analyst-drawer-backdrop', false);
-    toast.success('Compléments demandés au client.');
-  } catch (error) {
-    toast.danger(isApiError(error) ? error.message : 'Impossible de demander des compléments.');
-  }
+  toast.info('Choisissez le sujet du complément dans le dossier.');
 }
 
 export async function submitHumanValidationFromDrawer(
@@ -1854,6 +2056,9 @@ export async function submitHumanValidationFromDrawer(
   const id = getSelectedCreditRequestId();
   if (!id) {
     toast.info('Aucun dossier sélectionné.');
+    return;
+  }
+  if (await refuseIfLocked(id, 'analyst')) {
     return;
   }
   const comment =
@@ -1872,11 +2077,16 @@ export async function submitHumanValidationFromDrawer(
     notifyRequestsChanged();
     toast.success(
       decision === 'VALIDATED'
-        ? 'Conformité des pièces enregistrée.'
+        ? 'Pièce marquée conforme.'
         : decision === 'TO_COMPLETE'
-          ? 'Le demandeur doit reprendre la pièce.'
+          ? 'Pièce marquée à reprendre.'
           : 'Pièce marquée non conforme.',
     );
+    if (documentId) {
+      await fillAndOpenAnalystDrawer(String(id));
+      const { openDocLightbox } = await import('@/features/workflow/fillDocLightbox');
+      await openDocLightbox(`CREDIT-${id}-${documentId}`);
+    }
   } catch (error) {
     toast.danger(isApiError(error) ? error.message : 'Impossible d’enregistrer le contrôle des pièces.');
   }

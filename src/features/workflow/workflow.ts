@@ -1,3 +1,5 @@
+import { formatAmount } from '@/shared/format/money';
+
 export const REQUESTS_CHANGED_EVENT = 'creditfast-requests-changed';
 export const PROFILE_CHANGED_EVENT = 'creditfast-profile-changed';
 
@@ -34,7 +36,7 @@ export function formatFcfa(value?: number | null) {
   if (value == null || Number.isNaN(value)) {
     return '—';
   }
-  return `${new Intl.NumberFormat('fr-FR').format(Math.round(value))} FCFA`;
+  return `${formatAmount(value)} FCFA`;
 }
 
 export function creditStatusLabel(status?: string) {
@@ -45,6 +47,7 @@ export function creditStatusLabel(status?: string) {
     RECEIVED: 'Reçue au guichet',
     UNDER_REVIEW: 'Vérification agent',
     VERIFICATION_REQUIRED: 'Compléments demandés',
+    ADJOURNED: 'Ajournée',
     IN_ANALYSIS: 'Chez l’analyste',
     ANALYSIS: 'Chez l’analyste',
     PENDING_ANALYSIS: 'Chez l’analyste',
@@ -55,6 +58,43 @@ export function creditStatusLabel(status?: string) {
     AMENDED: 'Accord amendé',
   };
   return labels[key] || status || '—';
+}
+
+export type DossierHolder = 'client' | 'agent' | 'analyst' | 'committee' | 'closed';
+
+export function dossierHolder(status?: string): DossierHolder {
+  const key = (status || '').toUpperCase();
+  if (['SUBMITTED', 'RECEIVED', 'UNDER_REVIEW', 'VERIFICATION_REQUIRED'].includes(key)) {
+    return 'agent';
+  }
+  if (['IN_ANALYSIS', 'PENDING_ANALYSIS', 'ANALYSIS', 'CREDIT_REVIEW'].includes(key)) {
+    return 'analyst';
+  }
+  if (['PENDING_COMMITTEE', 'COMMITTEE'].includes(key)) {
+    return 'committee';
+  }
+  if (['APPROVED', 'AMENDED', 'REJECTED'].includes(key)) {
+    return 'closed';
+  }
+  return 'client';
+}
+
+export function stageLockMessage(status: string | undefined, actor: Exclude<DossierHolder, 'closed'>) {
+  if ((status || '').toUpperCase() === 'ADJOURNED') {
+    return 'Ce dossier est ajourné. Le vote est verrouillé.';
+  }
+  const holder = dossierHolder(status);
+  if (holder === actor) {
+    return null;
+  }
+  if (holder === 'closed') {
+    return 'Ce dossier est clos. Cette étape est verrouillée.';
+  }
+  if (holder === 'client') {
+    return 'Le demandeur n’a pas encore envoyé ce dossier.';
+  }
+  const names = { agent: 'l’agent', analyst: 'l’analyste', committee: 'le comité', client: 'le demandeur' } as const;
+  return `Ce dossier est chez ${names[holder]}. Les actions de ${names[actor]} sont verrouillées.`;
 }
 
 export function loanStatusLabel(status?: string) {

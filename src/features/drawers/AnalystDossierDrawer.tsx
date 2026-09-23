@@ -3,6 +3,7 @@ import { callApp } from '@/shared/ui/legacy';
 
 export function AnalystDossierDrawer() {
   return (
+    <>
 <div id="analyst-drawer-backdrop" className="schedule-drawer-backdrop" onClick={() => callApp("closeAnalystDossierDrawer")}>
     <div id="analyst-sidedrawer" className="schedule-drawer" onClick={(event) => event.stopPropagation()} aria-label="Volet instruction approfondie analyste risque">
       <div className="schedule-drawer-header">
@@ -23,31 +24,14 @@ export function AnalystDossierDrawer() {
       </div>
 
       <div className="schedule-drawer-body">
-        {/* Hero Score & Solvabilité Banner */}
         <div className="drawer-hero-banner" style={{ background: "linear-gradient(135deg, rgba(27, 67, 50, 0.06), rgba(81, 142, 69, 0.04))", borderColor: "rgba(27, 67, 50, 0.2)", padding: "1rem 1.15rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-            <div style={{ textAlign: "left" }}>
-              <div className="drawer-hero-label">Score d'aide à la décision</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
-                <span id="analyst-drawer-score-val" style={{ fontSize: "2rem", fontWeight: 800, color: "var(--primary-700)", fontFamily: "var(--font-family-code)" }}>—</span>
-                <span style={{ fontSize: "0.95rem", color: "var(--text-muted)", fontWeight: 600 }}>/100</span>
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div id="analyst-drawer-risk-tag" className="badge badge-submitted" style={{ fontSize: "0.8rem", padding: "0.3rem 0.7rem", marginBottom: "4px" }}>
-                Non calculé
-              </div>
-              <div id="analyst-drawer-confidence" style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 600 }}>
-                Indice de Confiance : <strong className="text-emerald">—</strong>
-              </div>
-            </div>
-          </div>
+          <div className="drawer-hero-label">Analyse 360°</div>
           <div className="decision-next-action" style={{ marginTop: "0.85rem", textAlign: "left" }}>
             <span className="decision-next-action-label">Prochaine action</span>
             <strong id="analyst-drawer-next-action">—</strong>
           </div>
           <p id="analyst-drawer-decision-summary" className="decision-summary" style={{ textAlign: "left", marginBottom: 0 }}>
-            Analyse non calculée.
+            Le dossier reste en analyse tant qu’il n’est pas transmis au comité.
           </p>
         </div>
 
@@ -152,21 +136,10 @@ export function AnalystDossierDrawer() {
           </div>
         </div>
 
-        {/* Section 4 : Explicabilité & 5 Piliers CreditFast */}
+        {/* Avis pour le comité, sans score */}
         <div className="drawer-panel">
           <div className="drawer-panel-header">
-            <h4 className="drawer-panel-title"><i className="fas fa-scale-balanced text-primary mr-1"></i> Grille de lecture du dossier</h4>
-            <span className="badge badge-approved" style={{ fontSize: "0.68rem" }}>Norme CreditFast</span>
-          </div>
-          <div id="analyst-drawer-factors-list" className="factors-list" style={{ gap: "0.5rem", display: "flex", flexDirection: "column" }}>
-            {/* Rendered Factors */}
-          </div>
-        </div>
-
-        {/* Section 5 : Avis & Recommandation pour le Comité */}
-        <div className="drawer-panel">
-          <div className="drawer-panel-header">
-            <h4 className="drawer-panel-title"><i className="fas fa-pen-to-square text-emerald mr-1"></i> Recommandation de l'Analyste</h4>
+            <h4 className="drawer-panel-title"><i className="fas fa-pen-to-square text-emerald mr-1"></i> Avis pour le comité</h4>
             <span className="badge badge-submitted" style={{ fontSize: "0.68rem" }}>Comité d'Octroi</span>
           </div>
           <div className="form-group" style={{ marginBottom: "0.75rem" }}>
@@ -185,26 +158,19 @@ export function AnalystDossierDrawer() {
       </div>
 
       {/* Sidedrawer Footer Actions */}
-      <div className="schedule-drawer-footer">
-        <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("closeAnalystDossierDrawer")}>
-          <i className="fas fa-times mr-1"></i> Fermer
-        </button>
-        <div id="analyst-drawer-review-actions" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("submitHumanValidationFromDrawer")}>
-            <i className="fas fa-check mr-1"></i> Pièces conformes
+      <div className="schedule-drawer-footer" style={{ justifyContent: "center", flexDirection: "column", alignItems: "stretch" }}>
+        <p id="analyst-drawer-lock" hidden style={{ margin: "0 0 0.55rem", fontSize: "0.78rem", color: "var(--text-muted)" }} />
+        <div id="analyst-drawer-review-actions">
+          <button type="button" className="btn btn-secondary btn-sm analyst-footer-wide" id="analyst-drawer-btn-360" onClick={() => callApp("openAnalyst360Modal")}>
+            <i className="fas fa-magnifying-glass-chart mr-1"></i> Analyser 360°
           </button>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("requestDocumentReworkFromDrawer")}>
-            <i className="fas fa-rotate-left mr-1"></i> Pièces à reprendre
-          </button>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("requestComplementFromAnalystDrawer")}>
-            <i className="fas fa-triangle-exclamation mr-1"></i> Demander des compléments
-          </button>
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => callApp("submitAnalystReviewFromDrawer")}>
+          <button type="button" className="btn btn-primary btn-sm analyst-footer-wide" id="analyst-drawer-btn-committee" onClick={() => callApp("submitAnalystReviewFromDrawer")}>
             <i className="fas fa-paper-plane mr-1"></i> Transmettre au comité
           </button>
         </div>
       </div>
     </div>
   </div>
+    </>
   );
 }

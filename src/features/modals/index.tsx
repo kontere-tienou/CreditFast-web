@@ -9,7 +9,7 @@ import { SettingsModal } from './SettingsModal';
 import { SuccessAnimationModal } from './SuccessAnimationModal';
 import { LoanApplicationModal } from './LoanApplicationModal';
 import { UploadDocumentModal } from './UploadDocumentModal';
-import { SavingsMembershipModal } from '@/features/savings/SavingsMembershipModal';
+import { SavingsOnboardingModal } from '@/features/savings/SavingsOnboardingModal';
 import { getUiSession } from '@/app/session';
 
 export function LegacyDialogs() {
@@ -25,7 +25,7 @@ export function LegacyDialogs() {
       <SettingsModal />
       <SuccessAnimationModal />
       <LoanApplicationModal />
-      {getUiSession()?.role === 'CLIENT' && <SavingsMembershipModal />}
+      {getUiSession()?.role === 'CLIENT' && <SavingsOnboardingModal />}
       <UploadDocumentModal />
     </>
   );

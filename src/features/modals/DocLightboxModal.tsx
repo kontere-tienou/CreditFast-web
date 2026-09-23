@@ -14,7 +14,7 @@ export function DocLightboxModal() {
         <div className="doc-lightbox-icon">
           <i className="fas fa-file-pdf" id="doc-lightbox-file-icon"></i>
         </div>
-        <div>
+        <div className="doc-lightbox-title-copy">
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }} id="doc-lightbox-title">
               Pièce
@@ -30,7 +30,7 @@ export function DocLightboxModal() {
       </div>
 
       {/* Controls */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+      <div className="doc-lightbox-controls" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
         {/* Zoom & Rotation Controls */}
         <div className="doc-lightbox-toolbar">
           <button type="button" className="doc-tool-btn" onClick={() => callApp("zoomDocLightbox", 0.85)} title="Zoom Arrière (-)">

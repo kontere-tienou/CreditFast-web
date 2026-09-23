@@ -2,6 +2,7 @@ import { toast } from '@heroui/react';
 import { isApiError } from '@/api/errors';
 import { getLoan, listLoanRepayments, listMyLoans, type Loan, type LoanRepayment } from '@/api/loans';
 import { getUiSession } from '@/app/session';
+import { formatAmount, parseAmount } from '@/shared/format/money';
 import { formatDate, formatFcfa, notifyRequestsChanged, repaymentStatusLabel } from '@/features/workflow/workflow';
 
 export type LoanRepaymentRef = {
@@ -150,7 +151,7 @@ export async function openClientPaymentModal(identifier?: unknown) {
     const amountInput = document.getElementById('payment-paid-amount') as HTMLInputElement | null;
     const dateInput = document.getElementById('payment-paid-date') as HTMLInputElement | null;
     if (amountInput) {
-      amountInput.value = String(repayment.remaining_amount ?? repayment.expected_amount ?? '');
+      amountInput.value = formatAmount(repayment.remaining_amount ?? repayment.expected_amount ?? 0);
     }
     if (dateInput) {
       dateInput.value = new Date().toISOString().slice(0, 10);
@@ -180,8 +181,8 @@ export async function submitClientPayment(event?: Event) {
     toast.warning('Choisissez une échéance à enregistrer.');
     return;
   }
-  const amount = Number((document.getElementById('payment-paid-amount') as HTMLInputElement | null)?.value);
-  if (!Number.isFinite(amount) || amount < 0.01) {
+  const amount = parseAmount((document.getElementById('payment-paid-amount') as HTMLInputElement | null)?.value);
+  if (amount == null || amount < 0.01) {
     toast.warning('Indiquez le montant encaissé.');
     return;
   }

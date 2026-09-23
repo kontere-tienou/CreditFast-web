@@ -60,8 +60,8 @@ export function AnomalyDrawer() {
               <span id="anom-drawer-loan-amount" className="drawer-kv-value" style={{ color: "var(--primary-700)", fontFamily: "var(--font-family-code)", fontWeight: 700 }}>1 800 000 FCFA</span>
             </div>
             <div className="drawer-kv">
-              <span className="drawer-kv-label">Score Risque Actuel</span>
-              <span id="anom-drawer-risk-score" className="drawer-kv-value" style={{ fontWeight: 800, color: "#dc2626" }}>31 / 100</span>
+              <span className="drawer-kv-label">Point de contrôle</span>
+              <span id="anom-drawer-risk-score" className="drawer-kv-value" style={{ fontWeight: 800, color: "#dc2626" }}>À traiter</span>
             </div>
           </div>
         </div>

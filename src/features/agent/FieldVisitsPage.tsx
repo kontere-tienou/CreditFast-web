@@ -3,6 +3,7 @@ import { getUiSession } from '@/app/session';
 import { Screen } from '@/shared/ui/Screen';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
+import { CfField } from '@/shared/ui/CfField';
 import { useCreditRequests } from '@/features/workflow/useCreditRequests';
 import { borrowerName, notifyRequestsChanged } from '@/features/workflow/workflow';
 import { cancelFieldVisit, completeFieldVisit, createFieldVisit, getFieldVisit, listFieldVisits, listRequestFieldVisits, startFieldVisit, updateFieldVisit, type FieldVisit, type FieldVisitOutcome, type FieldVisitStatus, type FieldVisitType, type VisitPage } from '@/api/fieldVisits';
@@ -16,8 +17,8 @@ const errorMessage = (error: unknown) => error instanceof Error ? error.message 
 function LocationFields({ visit }: { visit?: FieldVisit | null }) {
   return <>
     <label>Lieu / adresse<input className="form-control" name="location_label" defaultValue={visit?.location_label ?? ''} maxLength={500} /></label>
-    <label>Latitude<input className="form-control" name="latitude" type="number" step="any" min={-90} max={90} defaultValue={visit?.latitude ?? ''} /></label>
-    <label>Longitude<input className="form-control" name="longitude" type="number" step="any" min={-180} max={180} defaultValue={visit?.longitude ?? ''} /></label>
+    <label>Latitude<CfField kind="decimal" name="latitude" defaultValue={visit?.latitude ?? ''} /></label>
+    <label>Longitude<CfField kind="decimal" name="longitude" defaultValue={visit?.longitude ?? ''} /></label>
   </>;
 }
 

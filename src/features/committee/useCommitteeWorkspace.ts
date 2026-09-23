@@ -10,7 +10,7 @@ export function isCommitteePending(status?: string) {
 
 export function isCommitteeDecided(status?: string) {
   const key = (status || '').toUpperCase();
-  return ['APPROVED', 'REJECTED', 'AMENDED'].includes(key);
+  return ['APPROVED', 'REJECTED', 'AMENDED', 'ADJOURNED'].includes(key);
 }
 
 export function useCommitteeWorkspace() {
@@ -27,6 +27,7 @@ export function useCommitteeWorkspace() {
   const approved = requests.items.filter((row) => (row.status || '').toUpperCase() === 'APPROVED');
   const amended = requests.items.filter((row) => (row.status || '').toUpperCase() === 'AMENDED');
   const rejected = requests.items.filter((row) => (row.status || '').toUpperCase() === 'REJECTED');
+  const adjourned = requests.items.filter((row) => (row.status || '').toUpperCase() === 'ADJOURNED');
   const decided = requests.items.filter((row) => isCommitteeDecided(row.status));
 
   const volume = pending.reduce((sum, row) => sum + (row.requested_amount ?? 0), 0);
@@ -39,6 +40,7 @@ export function useCommitteeWorkspace() {
     approved,
     amended,
     rejected,
+    adjourned,
     decided,
     volume,
     envelope,

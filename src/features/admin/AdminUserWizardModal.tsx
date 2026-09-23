@@ -10,6 +10,7 @@ import {
   type StaffRole,
 } from "@/api/admin";
 import { Button } from "@/shared/ui/Button";
+import { AppModal } from "@/shared/ui/AppModal";
 import { ConfirmAlert } from "@/shared/ui/ConfirmAlert";
 import { CfSelect } from "@/shared/ui/CfSelect";
 
@@ -101,41 +102,19 @@ export function AdminUserWizardModal({
 
   return (
     <>
-      <div
-        className="cf-app-modal-backdrop"
-        onClick={(event) => {
-          if (event.target === event.currentTarget && !saving && !confirmOpen) {
+      <AppModal
+        className="cf-user-wizard-modal"
+        title="Créer un utilisateur"
+        titleId="admin-create-user-title"
+        subtitle="Compte interne par e-mail professionnel"
+        icon="fa-user-plus"
+        closeDisabled={saving || confirmOpen}
+        onClose={() => {
+          if (!saving && !confirmOpen) {
             onClose();
           }
         }}
       >
-        <div
-          className="cf-app-modal cf-user-wizard-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="admin-create-user-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="cf-app-modal-header">
-            <div className="cf-app-modal-header-main">
-              <div className="cf-app-modal-icon">
-                <i className="fas fa-user-plus"></i>
-              </div>
-              <div>
-                <h3 id="admin-create-user-title">Créer un utilisateur</h3>
-                <p>Compte interne par e-mail professionnel</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="cf-app-modal-close"
-              disabled={saving}
-              onClick={onClose}
-              title="Fermer"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
 
           <form onSubmit={(event) => void onSubmit(event)}>
             <div className="cf-app-modal-body">
@@ -254,8 +233,7 @@ export function AdminUserWizardModal({
               </Button>
             </div>
           </form>
-        </div>
-      </div>
+      </AppModal>
       <ConfirmAlert
         open={confirmOpen}
         title="Créer le compte interne"

@@ -4,6 +4,8 @@ import { fetchClientProfile, hasActiveSavingsAccount, hasRequiredIdentityDocumen
 import { isApiError } from "./errors";
 
 export type Membership = {
+  kind?: 'PRE_APPLICATION';
+  reference?: string;
   id: number;
   client_type: "PHYSICAL_PERSON" | "LEGAL_ENTITY";
   status: "PENDING" | "APPROVED" | "REJECTED" | "CHANGES_REQUESTED";
@@ -25,7 +27,7 @@ export type SavingsTransaction = {
   reference: string;
   booked_at: string;
   label: string;
-  type: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER' | 'FEE' | 'INTEREST';
+  type: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER' | 'FEE' | 'INTEREST' | 'LOAN_DISBURSEMENT';
   direction: 'CREDIT' | 'DEBIT';
   amount: number;
   status: 'COMPLETED' | 'PENDING' | 'CANCELLED';
@@ -348,6 +350,7 @@ export function reviewMembership(
   clientType: string | undefined,
   body: {
     decision: "APPROVED" | "REJECTED" | "CHANGES_REQUESTED";
+    agency_finalized?: boolean;
     account_number?: string;
     caisse_signature?: string;
     rejection_reason?: string;
@@ -366,6 +369,7 @@ export function reviewMembership(
       ? {
           account_number: body.account_number,
           caisse_signature: body.caisse_signature,
+          agency_finalized: body.agency_finalized,
         }
       : { reason: body.rejection_reason ?? body.correction_reason };
   return apiJson(`${applicationBase(type)}/${id}/${action}`, {

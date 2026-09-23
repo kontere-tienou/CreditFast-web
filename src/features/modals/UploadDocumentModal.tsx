@@ -1,4 +1,5 @@
 import type { DragEvent } from 'react';
+import { AppModal } from '@/shared/ui/AppModal';
 import { callApp } from '@/shared/ui/legacy';
 import { Button } from '@/shared/ui/Button';
 import { CfSelect } from '@/shared/ui/CfSelect';
@@ -15,28 +16,13 @@ export function UploadDocumentModal() {
   };
 
   return (
-    <div
+    <AppModal
       id="modal-upload-document"
-      className="modal-backdrop"
-      style={{ display: 'none', zIndex: 2100, background: 'rgba(15, 23, 42, 0.7)' }}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          callApp('closeUploadDocumentModal');
-        }
-      }}
+      parked
+      size="md"
+      zIndex={2100}
+      onClose={() => callApp('closeUploadDocumentModal')}
     >
-      <div
-        className="modal-dialog"
-        style={{
-          maxWidth: 560,
-          width: '92%',
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl)',
-          boxShadow: 'var(--shadow-2xl)',
-          border: '1px solid var(--border-color)',
-          overflow: 'hidden',
-        }}
-      >
         <div
           className="modal-header"
           style={{
@@ -162,7 +148,6 @@ export function UploadDocumentModal() {
             />
           </div>
         </div>
-      </div>
-    </div>
+</AppModal>
   );
 }

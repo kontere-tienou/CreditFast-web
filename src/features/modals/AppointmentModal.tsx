@@ -1,3 +1,5 @@
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { CfSelect } from '@/shared/ui/CfSelect';
 import { callApp } from '@/shared/ui/legacy';
 
@@ -7,8 +9,7 @@ export function AppointmentModal() {
 {/* ====================================================================
      [MODAL] PRISE DE RENDEZ-VOUS AVEC LE CONSEILLER (DEMANDEUR CIF)
      ==================================================================== */}
-<div id="client-appointment-modal" className="modal" style={{ display: "none", position: "fixed", inset: 0, zIndex: 2000, alignItems: "center", justifyContent: "center", background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(4px)" }}>
-  <div className="modal-dialog" style={{ maxWidth: "540px", width: "92%", background: "var(--bg-surface)", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-2xl)", border: "1px solid var(--border-color)", overflow: "hidden", animation: "modalFadeIn 0.25s ease-out" }}>
+<AppModal id="client-appointment-modal" parked size="md" zIndex={2000}>
     
     {/* Modal Header */}
     <div className="modal-header" style={{ padding: "1.25rem 1.5rem", background: "linear-gradient(135deg, var(--cif-primary-600), var(--cif-primary-800))", color: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -114,17 +115,16 @@ export function AppointmentModal() {
 
         {/* Modal Actions */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("closeAppointmentModal")}>
+          <Button type="button" variant="secondary" onClick={() => callApp("closeAppointmentModal")}>
             Annuler
-          </button>
-          <button type="submit" className="btn btn-success">
+          </Button>
+          <Button type="submit" variant="success">
             <i className="fas fa-check-circle mr-1"></i> Confirmer le Rendez-vous
-          </button>
+          </Button>
         </div>
       </form>
     </div>
-  </div>
-</div>
+</AppModal>
     </>
   );
 }

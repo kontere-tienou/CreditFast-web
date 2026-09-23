@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from '@heroui/react';
 import { isApiError, updateOwnPassword } from '@/api';
+import { AppModal } from '@/shared/ui/AppModal';
 import { Button } from '@/shared/ui/Button';
 
 type ChangePasswordModalProps = {
@@ -57,23 +58,15 @@ export function ChangePasswordModal({ open = false, onClose }: ChangePasswordMod
   };
 
   return (
-    <div className="cf-app-modal-backdrop" onClick={(event) => event.target === event.currentTarget && onClose()}>
-      <div className="cf-app-modal" role="dialog" aria-modal="true" aria-labelledby="change-password-title" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 480 }}>
-        <div className="cf-app-modal-header">
-          <div className="cf-app-modal-header-main">
-            <div className="cf-app-modal-icon">
-              <i className="fas fa-shield-halved"></i>
-            </div>
-            <div>
-              <h3 id="change-password-title">Sécurité du compte</h3>
-              <p>Changez votre mot de passe. Votre mot de passe actuel est demandé pour confirmer.</p>
-            </div>
-          </div>
-          <button type="button" className="cf-app-modal-close" onClick={onClose} title="Fermer">
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-
+    <AppModal
+      size="sm"
+      title="Sécurité du compte"
+      titleId="change-password-title"
+      subtitle="Votre mot de passe actuel est demandé pour confirmer."
+      icon="fa-shield-halved"
+      onClose={onClose}
+      closeDisabled={saving}
+    >
         <form onSubmit={(event) => void onSubmit(event)}>
           <div className="cf-app-modal-body">
             <div className="admin-form-grid">
@@ -123,7 +116,6 @@ export function ChangePasswordModal({ open = false, onClose }: ChangePasswordMod
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </AppModal>
   );
 }

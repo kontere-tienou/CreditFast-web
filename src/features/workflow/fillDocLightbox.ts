@@ -21,6 +21,7 @@ export type LightboxTarget = {
   documentId: number;
   requestId?: number;
   clientId?: number;
+  status?: string;
 };
 
 let objectUrl: string | null = null;
@@ -215,14 +216,22 @@ function renderActions(target: LightboxTarget, kind: LightboxTarget['kind']) {
     return;
   }
   if (kind === 'CREDIT' && (role === 'ANALYST' || role === 'ADMIN')) {
-    box.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:0.4rem">
-      <button type="button" class="btn btn-primary btn-sm" data-lb-decision="VALIDATED">Conforme</button>
-      <button type="button" class="btn btn-secondary btn-sm" data-lb-decision="TO_COMPLETE">À reprendre</button>
-      <button type="button" class="btn btn-secondary btn-sm" data-lb-decision="REJECTED">Non conforme</button>
+    const locked = documentCheck(target.status).tone === 'good';
+    const lockText = 'Contrôle verrouillé. Cette pièce est conforme.';
+    box.innerHTML = `<div style="display:flex;flex-direction:column;gap:0.45rem">
+      ${locked ? `<p style="margin:0;font-size:0.78rem;color:var(--text-muted)">${lockText}</p>` : ''}
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+        <button type="button" class="btn btn-primary btn-sm" data-lb-decision="VALIDATED" ${locked ? 'disabled' : ''}>Conforme</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-lb-decision="TO_COMPLETE" ${locked ? 'disabled' : ''}>À reprendre</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-lb-decision="REJECTED" ${locked ? 'disabled' : ''}>Non conforme</button>
+      </div>
     </div>`;
     box.onclick = (event) => {
-      const btn = (event.target as HTMLElement).closest<HTMLElement>('[data-lb-decision]');
-      if (!btn) {
+      if (locked) {
+        return;
+      }
+      const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-lb-decision]');
+      if (!btn || btn.disabled) {
         return;
       }
       const decision = btn.dataset.lbDecision as 'VALIDATED' | 'TO_COMPLETE' | 'REJECTED';
@@ -368,6 +377,7 @@ export async function openDocLightbox(raw?: unknown) {
     }
 
     setText('doc-lightbox-title', title);
+    document.getElementById('doc-lightbox-title')?.setAttribute('title', title);
     setText('doc-lightbox-meta', meta || '—');
     const badge = document.getElementById('doc-lightbox-badge');
     if (badge) {
@@ -385,6 +395,7 @@ export async function openDocLightbox(raw?: unknown) {
     }
     renderFields(fieldsSource, target.kind);
     renderChecks(status, target.kind);
+    target.status = status;
     renderActions(target, target.kind);
   } catch (error) {
     toast.danger(isApiError(error) ? error.message : 'Impossible d’ouvrir cette pièce.');

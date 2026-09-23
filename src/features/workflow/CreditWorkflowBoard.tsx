@@ -5,7 +5,7 @@ import { AppTable } from '@/shared/ui/AppTable';
 import { DossierBrowser } from '@/shared/ui/DossierBrowser';
 import { Button } from '@/shared/ui/Button';
 import { callApp } from '@/shared/ui/legacy';
-import { borrowerName, creditStatusLabel, formatFcfa, notifyRequestsChanged, setSelectedCreditRequestId } from './workflow';
+import { borrowerName, creditStatusLabel, formatFcfa, notifyRequestsChanged, setSelectedCreditRequestId, stageLockMessage } from './workflow';
 import { useCreditRequests, type WorkflowSource } from './useCreditRequests';
 
 type CreditWorkflowBoardProps = {
@@ -19,6 +19,38 @@ type CreditWorkflowBoardProps = {
 function canSendToAnalyst(status?: string) {
   const key = (status || '').toUpperCase();
   return !['ANALYSIS', 'IN_ANALYSIS', 'PENDING_ANALYSIS', 'COMMITTEE', 'PENDING_COMMITTEE', 'APPROVED', 'REJECTED', 'AMENDED', 'VERIFICATION_REQUIRED', 'DRAFT'].includes(key);
+}
+
+function transmissionLock(status?: string) {
+  return stageLockMessage(status, 'agent')
+    || ((status || '').toUpperCase() === 'VERIFICATION_REQUIRED' ? 'Le demandeur doit d’abord répondre au complément.' : null);
+}
+
+function StageActionButton({ label, lock, onClick }: { label: string; lock: string | null; onClick: () => void }) {
+  const button = (
+    <button
+      type="button"
+      className="btn btn-primary btn-sm"
+      disabled={Boolean(lock)}
+      title={lock || label}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (!lock) {
+          onClick();
+        }
+      }}
+    >
+      {label}
+    </button>
+  );
+  if (!lock) {
+    return button;
+  }
+  return (
+    <span title={lock} style={{ display: 'inline-flex' }} onClick={(event) => event.stopPropagation()}>
+      {button}
+    </span>
+  );
 }
 
 export function CreditWorkflowBoard({ source, heading, onOpen, statusFilter = 'ALL', searchQuery = '' }: CreditWorkflowBoardProps) {
@@ -161,44 +193,35 @@ export function CreditWorkflowBoard({ source, heading, onOpen, statusFilter = 'A
                         </button>
                       </>
                     ) : null}
-                    {source === 'agent' && canSendToAnalyst(row.status) ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={(event) => {
-                          event.stopPropagation();
+                    {source === 'agent' ? (
+                      <StageActionButton
+                        label="Analyste"
+                        lock={canSendToAnalyst(row.status) ? null : transmissionLock(row.status) || 'Ce dossier n’est pas à l’étape de transmission.'}
+                        onClick={() => {
                           const dossier = items.find((item) => item.id === Number(row.id));
                           if (dossier) {
                             void sendToAnalyst(dossier);
                           }
                         }}
-                      >
-                        Analyste
-                      </button>
+                      />
                     ) : null}
                     {source === 'analyst' ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          open(String(row.id));
-                        }}
-                      >
-                        Analyser
-                      </button>
+                      <StageActionButton
+                        label="Analyser"
+                        lock={stageLockMessage(row.status, 'analyst')}
+                        onClick={() => open(String(row.id))}
+                      />
                     ) : null}
-                    {source === 'committee' ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          open(String(row.id));
-                        }}
-                      >
-                        Délibérer
-                      </button>
+                    {source === 'committee' && ['APPROVED', 'AMENDED', 'REJECTED', 'ADJOURNED'].includes((row.status || '').toUpperCase()) ? (
+                      <Button type="button" variant="secondary" className="btn-sm" onClick={() => open(String(row.id))}>
+                        Consulter
+                      </Button>
+                    ) : source === 'committee' ? (
+                      <StageActionButton
+                        label="Délibérer"
+                        lock={stageLockMessage(row.status, 'committee')}
+                        onClick={() => open(String(row.id))}
+                      />
                     ) : null}
                   </div>
                 ),

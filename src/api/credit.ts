@@ -55,6 +55,11 @@ export type CreditProduct = {
 };
 
 export type CreditRequest = {
+  agency_code?: string;
+  agency_name?: string;
+  assigned_agent_name?: string;
+  assignment_status?: string;
+  financial_account_id?: number;
   id: number;
   client_id?: number;
   borrower_type?: string | null;
@@ -73,6 +78,11 @@ export type CreditRequest = {
   approved_amount?: number;
   approved_duration_months?: number;
   activity_id?: number;
+  complement_subject?: string;
+  complement_detail?: string;
+  adjourn_reason?: string;
+  adjourn_what?: string;
+  committee_decision?: { decision?: string; reason?: string; what?: string; subject?: string };
   loan_id?: number;
   loan?: { id?: number; status?: string; principal_amount?: number; duration_months?: number; monthly_payment?: number };
   client?: CreditRequestClient;
@@ -108,6 +118,10 @@ export type CreditGuarantee = {
   mime_type?: string | null;
   file_url?: string | null;
   verified_at?: string | null;
+  inspection_location?: string | null;
+  inspection_condition?: string | null;
+  inspection_reputation?: string | null;
+  inspection_notes?: string | null;
   created_at?: string;
 };
 
@@ -518,17 +532,47 @@ export async function getAnalysisTransferBlockers(id: number) {
   return { blockers, docs, guarantees };
 }
 
-export async function requestComplements(id: number, comment: string) {
+export const COMPLEMENT_SUBJECTS = {
+  PIECE: 'Pièce manquante',
+  INFORMATION: 'Information non fournie',
+  FIELD_VISIT: 'Contrôle terrain',
+  GUARANTEE: 'Confirmation de garantie',
+} as const;
+
+export type ComplementSubject = keyof typeof COMPLEMENT_SUBJECTS;
+
+export function complementSubjectLabel(subject?: string) {
+  if (subject && subject in COMPLEMENT_SUBJECTS) {
+    return COMPLEMENT_SUBJECTS[subject as ComplementSubject];
+  }
+  return 'Complément demandé';
+}
+
+export async function requestComplements(
+  id: number,
+  body: { subject: ComplementSubject; detail: string },
+) {
   const payload = await apiJson<unknown>(`/agent/requests/${id}/request-complements`, {
     method: 'POST',
-    body: JSON.stringify({ comment }),
+    body: JSON.stringify({
+      subject: body.subject,
+      detail: body.detail,
+      comment: `${COMPLEMENT_SUBJECTS[body.subject]} — ${body.detail}`,
+    }),
   });
   return unwrapCreditRequest(payload);
 }
 
 export async function verifyGuarantee(
   id: number,
-  body: { verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED'; verified_value?: number },
+  body: {
+    verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+    verified_value?: number;
+    inspection_location?: string;
+    inspection_condition?: string;
+    inspection_reputation?: string;
+    inspection_notes?: string;
+  },
 ) {
   return apiJson<unknown>(`/agent/guarantees/${id}/verify`, {
     method: 'POST',
@@ -757,6 +801,8 @@ export async function submitAnalystReview(
     recommendation: 'FAVORABLE' | 'RESERVED' | 'UNFAVORABLE';
     comment: string;
     next_step: 'COMMITTEE' | 'VERIFICATION_REQUIRED';
+    subject?: ComplementSubject;
+    detail?: string;
   },
 ) {
   const payload = await apiJson<unknown>(`/analyst/requests/${id}/review`, {
@@ -766,7 +812,7 @@ export async function submitAnalystReview(
   return unwrapCreditRequest(payload);
 }
 
-export type CommitteeDecision = 'APPROVED' | 'REJECTED' | 'AMENDED';
+export type CommitteeDecision = 'APPROVED' | 'REJECTED' | 'AMENDED' | 'ADJOURNED' | 'VERIFICATION_REQUIRED';
 
 export async function submitCommitteeDecision(
   id: number,
@@ -775,6 +821,9 @@ export async function submitCommitteeDecision(
     comment: string;
     approved_amount?: number;
     approved_duration_months?: number;
+    reason?: string;
+    what?: string;
+    subject?: ComplementSubject;
   },
 ) {
   const payload = await apiJson<unknown>(`/committee/requests/${id}/decide`, {

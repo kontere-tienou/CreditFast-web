@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from '@heroui/react';
-import { Screen } from '@/shared/ui/Screen';
-import { Button } from '@/shared/ui/Button';
-import { CfSelect } from '@/shared/ui/CfSelect';
-import { callApp } from '@/shared/ui/legacy';
-import { AppTable } from '@/shared/ui/AppTable';
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "@heroui/react";
+import { Screen } from "@/shared/ui/Screen";
+import { Button } from "@/shared/ui/Button";
+import { CfSelect } from "@/shared/ui/CfSelect";
+import { callApp } from "@/shared/ui/legacy";
+import { AppTable } from "@/shared/ui/AppTable";
 import {
   deleteCreditDocument,
   isRequestEditableByClient,
@@ -12,13 +12,22 @@ import {
   listMyCreditRequests,
   type CreditDocument,
   type CreditRequest,
-} from '@/api/credit';
-import { deleteKycDocument, isKycDocumentRemovable, listKycDocuments, type KycDocument } from '@/api/profile';
-import { isApiError } from '@/api/errors';
-import { formatDate, notifyRequestsChanged, REQUESTS_CHANGED_EVENT } from '@/features/workflow/workflow';
-import { documentCheck, identityCheck } from '@/features/workflow/compliance';
+} from "@/api/credit";
+import {
+  deleteKycDocument,
+  isKycDocumentRemovable,
+  listKycDocuments,
+  type KycDocument,
+} from "@/api/profile";
+import { isApiError } from "@/api/errors";
+import {
+  formatDate,
+  notifyRequestsChanged,
+  REQUESTS_CHANGED_EVENT,
+} from "@/features/workflow/workflow";
+import { documentCheck, identityCheck } from "@/features/workflow/compliance";
 
-type DocFilter = 'ALL' | 'KYC' | 'CREDIT';
+type DocFilter = "ALL" | "KYC" | "CREDIT";
 
 type ClientDocumentRow = {
   id: string;
@@ -31,7 +40,7 @@ type ClientDocumentRow = {
   status: string;
   expiring: boolean;
   sortIndex: number;
-  kind: 'KYC' | 'CREDIT';
+  kind: "KYC" | "CREDIT";
   documentId: number;
   requestId?: number;
   removable: boolean;
@@ -46,36 +55,41 @@ function toRow(
 ): ClientDocumentRow {
   const file = doc.original_filename || `document-${doc.id}`;
   const title = doc.document_type || file;
-  const expires = 'expires_at' in doc ? doc.expires_at : null;
-  const kind = source === 'KYC' ? 'KYC' : 'CREDIT';
-  const check = kind === 'KYC' ? identityCheck(doc.status) : documentCheck(doc.status);
-  const id = kind === 'KYC' ? `KYC-${doc.id}` : `CREDIT-${request?.id ?? 0}-${doc.id}`;
-  const removable = kind === 'KYC' ? isKycDocumentRemovable(doc.status) : isRequestEditableByClient(request?.status);
+  const expires = "expires_at" in doc ? doc.expires_at : null;
+  const kind = source === "KYC" ? "KYC" : "CREDIT";
+  const check =
+    kind === "KYC" ? identityCheck(doc.status) : documentCheck(doc.status);
+  const id =
+    kind === "KYC" ? `KYC-${doc.id}` : `CREDIT-${request?.id ?? 0}-${doc.id}`;
+  const removable =
+    kind === "KYC"
+      ? isKycDocumentRemovable(doc.status)
+      : isRequestEditableByClient(request?.status);
   return {
     id,
     title,
     file,
-    category: kind === 'KYC' ? 'Identité' : 'Dossier de crédit',
+    category: kind === "KYC" ? "Identité" : "Dossier de crédit",
     reference: String(doc.id),
     validityLabel: expires ? formatDate(expires) : formatDate(doc.uploaded_at),
-    validityValue: expires || doc.uploaded_at || '',
+    validityValue: expires || doc.uploaded_at || "",
     status: check.label,
-    expiring: check.tone === 'bad' || check.tone === 'warn',
+    expiring: check.tone === "bad" || check.tone === "warn",
     sortIndex: index,
     kind,
     documentId: doc.id,
     requestId: request?.id,
     removable,
     removeHint: removable
-      ? 'Retirer cette pièce'
-      : kind === 'KYC'
-        ? 'Pièce déjà contrôlée par l’agent : retrait impossible'
-        : 'Dossier transmis : la pièce ne peut plus être retirée',
+      ? "Retirer cette pièce"
+      : kind === "KYC"
+        ? "Pièce déjà contrôlée par l’agent : retrait impossible"
+        : "Dossier transmis : la pièce ne peut plus être retirée",
   };
 }
 
 export function ClientDocumentsPage() {
-  const [filter, setFilter] = useState<DocFilter>('ALL');
+  const [filter, setFilter] = useState<DocFilter>("ALL");
   const [rows, setRows] = useState<ClientDocumentRow[]>([]);
   const [requests, setRequests] = useState<CreditRequest[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -85,22 +99,27 @@ export function ClientDocumentsPage() {
     if (!row.removable || removing) {
       return;
     }
-    const label = row.kind === 'KYC' ? 'cette pièce d’identité' : 'cette pièce du dossier';
+    const label =
+      row.kind === "KYC" ? "cette pièce d’identité" : "cette pièce du dossier";
     if (!window.confirm(`Retirer ${label} ?`)) {
       return;
     }
     setRemoving(row.id);
     try {
-      if (row.kind === 'KYC') {
+      if (row.kind === "KYC") {
         await deleteKycDocument(row.documentId);
       } else if (row.requestId) {
         await deleteCreditDocument(row.requestId, row.documentId);
       }
       setRows((current) => current.filter((item) => item.id !== row.id));
-      toast.success('Pièce retirée.');
+      toast.success("Pièce retirée.");
       notifyRequestsChanged();
     } catch (error) {
-      toast.danger(isApiError(error) ? error.message : 'Impossible de retirer cette pièce.');
+      toast.danger(
+        isApiError(error)
+          ? error.message
+          : "Impossible de retirer cette pièce.",
+      );
     } finally {
       setRemoving(null);
     }
@@ -109,17 +128,30 @@ export function ClientDocumentsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [kyc, requests] = await Promise.all([listKycDocuments().catch(() => []), listMyCreditRequests().catch(() => [])]);
+        const [kyc, requests] = await Promise.all([
+          listKycDocuments().catch(() => []),
+          listMyCreditRequests().catch(() => []),
+        ]);
         setRequests(requests);
         const creditDocs = (
           await Promise.all(
             requests.map(async (request) => {
-              const docs = await listCreditRequestDocuments(request.id).catch(() => [] as CreditDocument[]);
-              return docs.map((doc, index) => toRow(doc, 'CREDIT', kyc.length + index, { id: request.id, status: request.status }));
+              const docs = await listCreditRequestDocuments(request.id).catch(
+                () => [] as CreditDocument[],
+              );
+              return docs.map((doc, index) =>
+                toRow(doc, "CREDIT", kyc.length + index, {
+                  id: request.id,
+                  status: request.status,
+                }),
+              );
             }),
           )
         ).flat();
-        const next = [...kyc.map((doc, index) => toRow(doc, 'KYC', index)), ...creditDocs];
+        const next = [
+          ...kyc.map((doc, index) => toRow(doc, "KYC", index)),
+          ...creditDocs,
+        ];
         setRows(next);
       } catch {
         setRows([]);
@@ -135,15 +167,21 @@ export function ClientDocumentsPage() {
   }, []);
 
   const visible = useMemo(() => {
-    if (filter === 'ALL') {
+    if (filter === "ALL") {
       return rows;
     }
-    return rows.filter((row) => (filter === 'KYC' ? row.category === 'Identité' : row.category.startsWith('Dossier')));
+    return rows.filter((row) =>
+      filter === "KYC"
+        ? row.category === "Identité"
+        : row.category.startsWith("Dossier"),
+    );
   }, [filter, rows]);
 
-  const kycCount = rows.filter((row) => row.category === 'Identité').length;
+  const kycCount = rows.filter((row) => row.category === "Identité").length;
   const creditCount = rows.length - kycCount;
-  const pendingComplements = requests.filter((row) => (row.status || '').toUpperCase() === 'VERIFICATION_REQUIRED');
+  const pendingComplements = requests.filter(
+    (row) => (row.status || "").toUpperCase() === "VERIFICATION_REQUIRED",
+  );
   const attentionRows = rows.filter((row) => row.expiring);
   const latestPending = pendingComplements[0];
 
@@ -152,12 +190,17 @@ export function ClientDocumentsPage() {
       <div className="page-header">
         <div>
           <h2 className="page-title">
-            <i className="fas fa-folder-closed text-primary mr-2"></i> Mes pièces justificatives
+            <i className="fas fa-folder-closed text-primary mr-2"></i> Mes
+            pièces justificatives
           </h2>
-          <p className="page-subtitle">Chaque pièce est lue par le système après dépôt. L’agent confirme ensuite la conformité. Une pièce peut être retirée tant qu’elle n’a pas été contrôlée.</p>
+          <p className="page-subtitle">
+            Chaque pièce est lue par le système après dépôt. L’agent confirme
+            ensuite la conformité. Une pièce peut être retirée tant qu’elle n’a
+            pas été contrôlée.
+          </p>
         </div>
         <div className="page-actions">
-          <Button onClick={() => callApp('openUploadDocumentModal')}>
+          <Button onClick={() => callApp("openUploadDocumentModal")}>
             <i className="fas fa-cloud-arrow-up"></i> Téléverser un document
           </Button>
         </div>
@@ -170,13 +213,22 @@ export function ClientDocumentsPage() {
           </span>
           <h3>Répondre à une relance depuis le téléphone</h3>
           <p>
-            Le client peut recevoir la demande de complément, photographier une pièce, l’envoyer, puis suivre le contrôle agent sans revenir en agence.
+            Le client peut recevoir la demande de complément, photographier une
+            pièce, l’envoyer, puis suivre le contrôle agent sans revenir en
+            agence.
           </p>
           <div className="client-mobile-actions">
-            <Button className="btn-sm" onClick={() => callApp('openUploadDocumentModal')}>
+            <Button
+              className="btn-sm"
+              onClick={() => callApp("openUploadDocumentModal")}
+            >
               <i className="fas fa-camera"></i> Déposer une pièce
             </Button>
-            <Button variant="secondary" className="btn-sm" onClick={() => callApp('switchView', 'view-client-requests')}>
+            <Button
+              variant="secondary"
+              className="btn-sm"
+              onClick={() => callApp("switchView", "view-client-requests")}
+            >
               <i className="fas fa-route"></i> Suivre le dossier
             </Button>
           </div>
@@ -185,7 +237,7 @@ export function ClientDocumentsPage() {
           <div className="client-mobile-kpis">
             <div>
               <strong>{pendingComplements.length}</strong>
-              <span>complément{pendingComplements.length > 1 ? 's' : ''}</span>
+              <span>complément{pendingComplements.length > 1 ? "s" : ""}</span>
             </div>
             <div>
               <strong>{kycCount}</strong>
@@ -197,13 +249,23 @@ export function ClientDocumentsPage() {
             </div>
           </div>
           <div className="client-mobile-steps">
-            <span className={pendingComplements.length ? 'is-active' : 'is-done'}>
+            <span
+              className={pendingComplements.length ? "is-active" : "is-done"}
+            >
               <i className="fas fa-bell"></i> Relance
             </span>
-            <span className={kycCount || creditCount ? 'is-done' : 'is-active'}>
+            <span className={kycCount || creditCount ? "is-done" : "is-active"}>
               <i className="fas fa-camera"></i> Dépôt
             </span>
-            <span className={attentionRows.length ? 'is-active' : rows.length ? 'is-done' : ''}>
+            <span
+              className={
+                attentionRows.length
+                  ? "is-active"
+                  : rows.length
+                    ? "is-done"
+                    : ""
+              }
+            >
               <i className="fas fa-file-shield"></i> Contrôle
             </span>
           </div>
@@ -211,24 +273,48 @@ export function ClientDocumentsPage() {
             {latestPending
               ? `Dossier #${latestPending.id} en attente : ajoutez la pièce demandée pour renvoyer le dossier à l’agent.`
               : attentionRows.length
-                ? `${attentionRows.length} pièce${attentionRows.length > 1 ? 's' : ''} à corriger ou confirmer.`
+                ? `${attentionRows.length} pièce${attentionRows.length > 1 ? "s" : ""} à corriger ou confirmer.`
                 : rows.length
-                  ? 'Les pièces déposées sont visibles et prêtes pour le suivi agent.'
-                  : 'Aucune pièce déposée pour le moment.'}
+                  ? "Les pièces déposées sont visibles et prêtes pour le suivi agent."
+                  : "Aucune pièce déposée pour le moment."}
           </p>
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: '1.25rem' }}>
-        <div className="card-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap', padding: '0.85rem 1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-            <label htmlFor="client-docs-filter-select" style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+      <div className="card" style={{ marginBottom: "1.25rem" }}>
+        <div
+          className="card-body"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.75rem",
+            flexWrap: "wrap",
+            padding: "0.85rem 1rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.65rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <label
+              htmlFor="client-docs-filter-select"
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                color: "var(--text-secondary)",
+              }}
+            >
               Filtrer
             </label>
             <CfSelect
               id="client-docs-filter-select"
               className="form-control"
-              style={{ width: 'auto', minWidth: 240 }}
+              style={{ width: "auto", minWidth: 240 }}
               value={filter}
               onChange={(event) => setFilter(event.target.value as DocFilter)}
             >
@@ -243,7 +329,15 @@ export function ClientDocumentsPage() {
       {loaded && !rows.length ? (
         <div className="card">
           <div className="card-body">
-            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.86rem' }}>Aucun document n’est encore enregistré pour ce compte.</p>
+            <p
+              style={{
+                margin: 0,
+                color: "var(--text-muted)",
+                fontSize: "0.86rem",
+              }}
+            >
+              Aucun document n’est encore enregistré pour ce compte.
+            </p>
           </div>
         </div>
       ) : (
@@ -251,26 +345,42 @@ export function ClientDocumentsPage() {
           chrome="plain"
           title="Pièces justificatives"
           items={visible}
-          onRowAction={(key) => callApp('openDocLightbox', String(key))}
+          onRowAction={(key) => callApp("openDocLightbox", String(key))}
           columns={[
-            { id: 'title', label: 'Document', isRowHeader: true, render: (row) => row.title },
-            { id: 'file', label: 'Fichier', render: (row) => row.file },
-            { id: 'category', label: 'Catégorie', render: (row) => row.category },
-            { id: 'status', label: 'Contrôle', render: (row) => row.status },
-            { id: 'date', label: 'Date', render: (row) => row.validityLabel },
             {
-              id: 'actions',
-              label: '',
-              className: 'actions',
+              id: "title",
+              label: "Document",
+              isRowHeader: true,
+              render: (row) => row.title,
+            },
+            { id: "file", label: "Fichier", render: (row) => row.file },
+            {
+              id: "category",
+              label: "Catégorie",
+              render: (row) => row.category,
+            },
+            { id: "status", label: "Contrôle", render: (row) => row.status },
+            { id: "date", label: "Date", render: (row) => row.validityLabel },
+            {
+              id: "actions",
+              label: "",
+              className: "actions",
               render: (row) => (
-                <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }} onClick={(event) => event.stopPropagation()}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.3rem",
+                    justifyContent: "flex-end",
+                  }}
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <button
                     type="button"
                     className="btn btn-secondary btn-xs"
                     title="Voir la pièce"
                     onClick={(event) => {
                       event.stopPropagation();
-                      callApp('openDocLightbox', row.id);
+                      callApp("openDocLightbox", row.id);
                     }}
                   >
                     <i className="fas fa-eye"></i>
@@ -285,7 +395,9 @@ export function ClientDocumentsPage() {
                       void removeRow(row);
                     }}
                   >
-                    <i className={`fas ${removing === row.id ? 'fa-spinner fa-spin' : 'fa-trash-can'}`}></i>
+                    <i
+                      className={`fas ${removing === row.id ? "fa-spinner fa-spin" : "fa-trash-can"}`}
+                    ></i>
                   </button>
                 </div>
               ),

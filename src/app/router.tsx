@@ -13,7 +13,7 @@ import {
   ClientSimulatorPage,
 } from '@/features/client';
 import { AgentClientsPage, AgentComplementsPage, AgentDashboardPage, AgentInspectionsPage, AgentLoansPage } from '@/features/agent';
-import { AnalystAnomaliesPage, AnalystDashboardPage, AnalystDossiersPage, AnalystScoringPage } from '@/features/analyst';
+import { AnalystAnomaliesPage, AnalystDashboardPage, AnalystDossiersPage } from '@/features/analyst';
 import { CommitteeDashboardPage, CommitteeDossiersPage, CommitteeSignedPage } from '@/features/committee';
 import { AuditLogsPage } from '@/features/shared/AuditLogsPage';
 import { RequireRole } from '@/app/RequireRole';
@@ -83,7 +83,6 @@ export function AppRouter() {
         <Route element={<RequireRole allow={['ANALYST']} />}>
           <Route path="analyst" element={<AnalystDashboardPage />} />
           <Route path="analyst/dossiers" element={<AnalystDossiersPage />} />
-          <Route path="analyst/scoring" element={<AnalystScoringPage />} />
           <Route path="analyst/anomalies" element={<AnalystAnomaliesPage />} />
           <Route path="analyst/audit" element={<AuditLogsPage />} />
         </Route>

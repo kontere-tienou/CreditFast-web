@@ -1,4 +1,7 @@
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { callApp } from '@/shared/ui/legacy';
+import { CfField } from '@/shared/ui/CfField';
 
 export function PaymentModal() {
   return (
@@ -6,8 +9,7 @@ export function PaymentModal() {
 {/* ====================================================================
      [MODAL] PAIEMENT D'ÉCHÉANCE MOBILE MONEY (DEMANDEUR CREDITFAST)
      ==================================================================== */}
-<div id="client-payment-modal" className="modal-backdrop" style={{ display: "none", position: "fixed", inset: 0, zIndex: 2000, alignItems: "center", justifyContent: "center", background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(4px)" }}>
-  <div className="modal-dialog" style={{ maxWidth: "500px", width: "92%", background: "var(--bg-surface)", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-2xl)", border: "1px solid var(--border-color)", overflow: "hidden" }}>
+<AppModal id="client-payment-modal" parked size="md" zIndex={2000}>
     
     {/* Modal Header */}
     <div className="modal-header" style={{ padding: "1.25rem 1.5rem", background: "linear-gradient(135deg, var(--cif-emerald-500), var(--cif-emerald-600))", color: "white" }}>
@@ -48,7 +50,7 @@ export function PaymentModal() {
         <div id="payment-staff-fields" hidden>
           <div className="form-group" style={{ marginBottom: "0.85rem" }}>
             <label className="form-label" style={{ fontSize: "0.8rem" }}>Montant encaissé *</label>
-            <input type="number" min="0.01" step="1" id="payment-paid-amount" className="form-control" />
+            <CfField kind="amount" id="payment-paid-amount" />
           </div>
           <div className="form-group" style={{ marginBottom: "1.25rem" }}>
             <label className="form-label" style={{ fontSize: "0.8rem" }}>Date d’encaissement</label>
@@ -90,13 +92,12 @@ export function PaymentModal() {
         </div>
 
         {/* Submit Button */}
-        <button type="submit" id="btn-confirm-momo-pay" className="btn btn-success btn-lg" style={{ width: "100%", justifyContent: "center" }}>
+        <Button type="submit" id="btn-confirm-momo-pay" variant="success" className="btn-lg" style={{ width: "100%", justifyContent: "center" }}>
           <i className="fas fa-lock mr-2"></i> J’ai noté le montant
-        </button>
+        </Button>
       </form>
     </div>
-  </div>
-</div>
+</AppModal>
     </>
   );
 }

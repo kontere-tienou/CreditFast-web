@@ -4,6 +4,7 @@ import { StatCard } from '@/shared/ui/StatCard';
 import { AppTable } from '@/shared/ui/AppTable';
 import { DossierBrowser } from '@/shared/ui/DossierBrowser';
 import { callApp } from '@/shared/ui/legacy';
+import { guaranteeStatusLabel, guaranteeTypeLabel } from '@/api/credit';
 import { borrowerName, formatFcfa } from '@/features/workflow/workflow';
 import { useAgentWorkspace } from './useAgentWorkspace';
 import { Link } from 'react-router-dom';
@@ -30,7 +31,7 @@ export function AgentInspectionsPage() {
         items={guarantees.map((row) => ({
           id: String(row.guarantee.id),
           title: borrowerName(row.request),
-          meta: `${row.guarantee.guarantee_type || 'Garantie'} · ${row.guarantee.verification_status || 'PENDING'}`,
+          meta: `${guaranteeTypeLabel(row.guarantee.guarantee_type)} · ${guaranteeStatusLabel(row.guarantee.verification_status)}`,
           hint: formatFcfa(row.guarantee.declared_value),
         }))}
         onOpen={(id) => callApp('openInspectionDrawer', id)}
@@ -43,8 +44,8 @@ export function AgentInspectionsPage() {
                 id: String(row.guarantee.id),
                 requestId: row.request.id,
                 name: borrowerName(row.request),
-                type: row.guarantee.guarantee_type || '—',
-                status: row.guarantee.verification_status || 'PENDING',
+                type: guaranteeTypeLabel(row.guarantee.guarantee_type),
+                status: guaranteeStatusLabel(row.guarantee.verification_status),
                 declared: formatFcfa(row.guarantee.declared_value),
                 verified: formatFcfa(row.guarantee.verified_value),
                 purpose: row.request.purpose || '',

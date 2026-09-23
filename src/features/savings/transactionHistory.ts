@@ -1,6 +1,6 @@
 import type { SavingsTransaction } from '@/api/savings';
 
-export const transactionTypes: Record<SavingsTransaction['type'], string> = { DEPOSIT: 'Dépôt', WITHDRAWAL: 'Retrait', TRANSFER: 'Virement', FEE: 'Frais', INTEREST: 'Intérêts' };
+export const transactionTypes: Record<SavingsTransaction['type'], string> = { DEPOSIT: 'Dépôt', WITHDRAWAL: 'Retrait', TRANSFER: 'Virement', FEE: 'Frais', INTEREST: 'Intérêts', LOAN_DISBURSEMENT: 'Épargne +' };
 export const transactionStatuses: Record<SavingsTransaction['status'], string> = { COMPLETED: 'Comptabilisée', PENDING: 'En attente', CANCELLED: 'Annulée' };
 export function transactionsCsv(rows: SavingsTransaction[], accountNumber: string) {
   const cell = (value: unknown) => {

@@ -1,3 +1,5 @@
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { callApp } from '@/shared/ui/legacy';
 
 export function SuccessAnimationModal() {
@@ -6,8 +8,7 @@ export function SuccessAnimationModal() {
 {/* ====================================================================
      [MODAL] ANIMATION DE SUCCÈS & VALIDATION TRANSACTIONS (GREEN CHECKMARK)
      ==================================================================== */}
-<div id="modal-success-animation" className="modal" style={{ display: "none", position: "fixed", inset: 0, zIndex: 2200, alignItems: "center", justifyContent: "center", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(5px)" }}>
-  <div className="success-anim-dialog">
+<AppModal id="modal-success-animation" parked size="sm" zIndex={2200} className="success-anim-dialog">
     {/* Animated Checkmark SVG */}
     <div className="success-icon-wrapper">
       <div className="success-icon-glow"></div>
@@ -47,15 +48,14 @@ export function SuccessAnimationModal() {
 
     {/* Actions */}
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-      <button type="button" className="btn btn-success btn-lg" id="success-modal-primary-btn" onClick={() => callApp("closeSuccessModal")} style={{ width: "100%", justifyContent: "center" }}>
+      <Button type="button" variant="success" className="btn-lg" id="success-modal-primary-btn" onClick={() => callApp("closeSuccessModal")} style={{ width: "100%", justifyContent: "center" }}>
         <i className="fas fa-arrow-right mr-1"></i> Poursuivre vers mon Espace
-      </button>
-      <button type="button" className="btn btn-secondary btn-sm" id="success-modal-secondary-btn" onClick={() => callApp("downloadSuccessReceipt")} style={{ width: "100%", justifyContent: "center" }}>
+      </Button>
+      <Button type="button" variant="secondary" className="btn-sm" id="success-modal-secondary-btn" onClick={() => callApp("downloadSuccessReceipt")} style={{ width: "100%", justifyContent: "center" }}>
         <i className="fas fa-file-arrow-down mr-1"></i> Télécharger le Récépissé Officiel (PDF)
-      </button>
+      </Button>
     </div>
-  </div>
-</div>
+</AppModal>
     </>
   );
 }

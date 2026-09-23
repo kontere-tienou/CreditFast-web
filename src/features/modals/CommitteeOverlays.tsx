@@ -1,14 +1,19 @@
+import { useState } from 'react';
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { CfSelect } from '@/shared/ui/CfSelect';
+import { CfField } from '@/shared/ui/CfField';
 import { callApp } from '@/shared/ui/legacy';
+import { CommitteeRefusalAlert } from '@/features/committee/CommitteeRefusalAlert';
 
 export function CommitteeOverlays() {
+  const [refusalOpen, setRefusalOpen] = useState(false);
   return (
     <>
 {/* ==========================================================================
      MODAL: COMITÉ DE CRÉDIT & CONFORMITÉ - DÉLIBÉRATION COLLÉGIALE
      ========================================================================== */}
-<div id="committee-modal" className="modal-backdrop" style={{ display: "none" }}>
-  <div className="modal-dialog committee-modal-dialog" style={{ maxWidth: "820px", width: "94%" }}>
+<AppModal id="committee-modal" parked size="lg" className="committee-modal-dialog">
     
     {/* Modal Header with Identity & Quorum */}
     <div className="modal-header" style={{ padding: "1.25rem 1.5rem", background: "linear-gradient(135deg, rgba(27, 67, 50, 0.04) 0%, rgba(139, 92, 246, 0.08) 100%)", borderBottom: "1px solid var(--border-color)" }}>
@@ -36,10 +41,29 @@ export function CommitteeOverlays() {
     {/* Modal Body */}
     <div className="modal-body" style={{ padding: "1.5rem" }}>
       
-      {/* 1. Dossier Synthesis Cards (3 Columns) */}
-      <div className="grid-3" style={{ gap: "1rem", marginBottom: "1.25rem" }}>
-        
-        {/* Montant & Échéance */}
+      <div className="com-decision-facts">
+        <div className="com-score-card">
+          <div className="com-score-kicker">Score et recommandation</div>
+          <div className="com-score-gauge" id="com-score-gauge">
+            <div className="com-score-gauge-track">
+              <span id="com-score-marker" className="com-score-marker is-hidden"></span>
+            </div>
+            <div className="com-score-gauge-scale"><span>0</span><span>100</span></div>
+          </div>
+          <div className="com-score-split">
+            <div className="com-score-line">
+              <span id="com-score-value">—</span>
+              <span className="com-score-max">/100</span>
+            </div>
+            <div className="com-score-aside">
+              <div id="com-risk-level" className="com-score-reco">—</div>
+              <p id="com-score-note" className="com-score-note">
+                Le score sur 100 et la recommandation restent uniquement ici. Le calcul se fait à l’arrivée du dossier au comité.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="grid-2" style={{ gap: "1rem" }}>
         <div className="card" style={{ padding: "0.9rem 1rem", background: "var(--bg-surface)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
           <div style={{ fontSize: "0.72rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", marginBottom: "0.25rem" }}>
             Montant Demandé
@@ -49,21 +73,6 @@ export function CommitteeOverlays() {
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
             Durée : <strong id="com-requested-duration">—</strong>
-          </div>
-        </div>
-
-        {/* Score Risque */}
-        <div className="card" style={{ padding: "0.9rem 1rem", background: "var(--bg-surface)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
-          <div style={{ fontSize: "0.72rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", marginBottom: "0.25rem" }}>
-            Score d’aide à la décision
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem" }}>
-            <span id="com-score-value" style={{ fontSize: "1.25rem", fontWeight: 800, color: "#518e45" }}>—</span>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>/100</span>
-            <span className="badge badge-approved" id="com-risk-level" style={{ marginLeft: "auto", fontSize: "0.7rem" }}>Faible</span>
-          </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
-            <i className="fas fa-shield-halved text-emerald"></i> Grille de score 
           </div>
         </div>
 
@@ -78,6 +87,7 @@ export function CommitteeOverlays() {
           <div style={{ fontSize: "0.75rem", color: "#518e45", fontWeight: 600, marginTop: "2px" }}>
             <i className="fas fa-circle-check"></i> Capacité après charges
           </div>
+        </div>
         </div>
       </div>
 
@@ -106,7 +116,7 @@ export function CommitteeOverlays() {
           {/* Montant Accordé */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" style={{ fontWeight: 700, fontSize: "0.8rem" }}>Montant Accordé (FCFA)</label>
-            <input type="number" id="com-approved-amount" className="form-control" defaultValue="" step="50000" style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--primary-700)" }} />
+            <CfField kind="amount" id="com-approved-amount" defaultValue="" />
           </div>
 
           {/* Durée */}
@@ -123,7 +133,7 @@ export function CommitteeOverlays() {
           {/* Taux d'Intérêt */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" style={{ fontWeight: 700, fontSize: "0.8rem" }}>Taux Dégressif Annuel (%)</label>
-            <input type="number" step="0.1" id="com-interest-rate" className="form-control" defaultValue="11.5" style={{ fontWeight: 600 }} />
+            <CfField kind="decimal" id="com-interest-rate" defaultValue="15" />
           </div>
         </div>
 
@@ -148,6 +158,9 @@ export function CommitteeOverlays() {
 
       {/* 4. Décision Finale Collégiale (3 Cartes Intuitives) */}
       <div style={{ marginTop: "1.5rem" }}>
+        <p id="com-consultation-note" hidden style={{ margin: "0 0 0.75rem", fontSize: "0.82rem", color: "var(--text-secondary)", textAlign: "center" }}>
+          Ce dossier est déjà décidé. Il reste ouvert pour consultation : score, versement et échéancier.
+        </p>
         <h4 style={{ fontSize: "0.92rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.75rem", textAlign: "center" }}>
           Vote & Décision Finale du Comité
         </h4>
@@ -161,11 +174,11 @@ export function CommitteeOverlays() {
               <div className="action-title" style={{ color: "#1b4332" }}>Accorder tel que demandé</div>
             </div>
             <p className="action-desc">
-              Valider le montant et la durée proposés. Le prêt est créé, le versement des fonds reste à l’agent.
+              Valider le montant et la durée proposés. Le capital part sur le compte épargne et l’échéancier démarre.
             </p>
-            <button type="button" className="btn btn-success w-full" style={{ fontWeight: 700, marginTop: "auto" }}>
+            <Button type="button" variant="success" className="w-full" style={{ fontWeight: 700, marginTop: "auto" }}>
               <i className="fas fa-signature mr-1"></i> Accorder
-            </button>
+            </Button>
           </div>
 
           <div className="committee-action-card reserve" onClick={() => callApp("submitCommitteeDecision", 'AMENDED')}>
@@ -178,12 +191,12 @@ export function CommitteeOverlays() {
             <p className="action-desc">
               Utilisez le montant ou la durée saisis ci-dessus, différents de la demande initiale.
             </p>
-            <button type="button" className="btn btn-warning w-full" style={{ fontWeight: 700, marginTop: "auto" }}>
+            <Button type="button" variant="warning" className="w-full" style={{ fontWeight: 700, marginTop: "auto" }}>
               <i className="fas fa-pen-to-square mr-1"></i> Accorder modifié
-            </button>
+            </Button>
           </div>
 
-          <div className="committee-action-card reject" onClick={() => callApp("submitCommitteeDecision", 'REJECTED')}>
+          <div className="committee-action-card reject" onClick={() => setRefusalOpen(true)}>
             <div className="action-card-header">
               <div className="action-icon-wrap" style={{ background: "rgba(239, 68, 68, 0.15)", color: "#dc2626" }}>
                 <i className="fas fa-circle-xmark"></i>
@@ -191,18 +204,18 @@ export function CommitteeOverlays() {
               <div className="action-title" style={{ color: "#b91c1c" }}>Refuser le dossier</div>
             </div>
             <p className="action-desc">
-              Enregistrez un refus motivé. Précisez le motif dans le champ des conditions.
+              Ouvre l’alerte : pourquoi, quoi, puis ajourner ou renvoyer un complément à l’agent.
             </p>
-            <button type="button" className="btn btn-danger w-full" style={{ fontWeight: 700, marginTop: "auto" }}>
+            <Button type="button" variant="danger" className="w-full" style={{ fontWeight: 700, marginTop: "auto" }}>
               <i className="fas fa-ban mr-1"></i> Refuser
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
     </div>
-  </div>
-</div>
+</AppModal>
+<CommitteeRefusalAlert open={refusalOpen} onClose={() => setRefusalOpen(false)} />
 
 {/* ==========================================================================
      SIDEDRAWER VOLET LATÉRAL : ANALYSE APPROFONDIE DU DOSSIER COMITÉ
@@ -265,22 +278,23 @@ export function CommitteeOverlays() {
       {/* Section 2 : Scoring IA Explicable & Piliers XAI */}
       <div className="drawer-panel">
         <div className="drawer-panel-header">
-          <h4 className="drawer-panel-title"><i className="fas fa-chart-line text-emerald mr-1"></i> Score d’aide à la décision</h4>
+          <h4 className="drawer-panel-title"><i className="fas fa-chart-line text-emerald mr-1"></i> Score et recommandation</h4>
           <span id="com-drawer-conf-badge" className="badge badge-submitted"><i className="fas fa-check-double"></i> Confiance —</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-body)", padding: "0.75rem 1rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", marginBottom: "0.75rem" }}>
-          <div>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>Score de Crédibilité Global</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginTop: "2px" }}>
-              <span id="com-drawer-overall-score" style={{ fontSize: "1.6rem", fontWeight: 900, color: "#518e45" }}>—</span>
-              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600 }}>/100</span>
-            </div>
+        <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
+          Le score sur 100 et la recommandation restent uniquement ici. Le calcul se fait à l’arrivée du dossier au comité.
+        </p>
+        <div className="com-score-gauge">
+          <div className="com-score-gauge-track">
+            <span id="com-drawer-score-marker" className="com-score-marker is-hidden"></span>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <span className="badge badge-submitted" id="com-drawer-capacity-badge" style={{ fontSize: "0.74rem" }}><i className="fas fa-check"></i> Capacité</span>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-subtle)", marginTop: "3px" }}>Lecture du reste à vivre</div>
-          </div>
+          <div className="com-score-gauge-scale"><span>0</span><span>100</span></div>
         </div>
+        <div className="com-score-line" style={{ marginTop: "0.35rem" }}>
+          <span id="com-drawer-overall-score" style={{ fontSize: "2.2rem", fontWeight: 900, color: "#1b4332", letterSpacing: "-0.04em" }}>—</span>
+          <span className="com-score-max">/100</span>
+        </div>
+        <div id="com-drawer-recommendation" className="com-score-reco">—</div>
 
         {/* Piliers XAI */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.75rem" }}>
@@ -348,11 +362,12 @@ export function CommitteeOverlays() {
     </div>
 
     {/* Sidedrawer Footer Actions */}
-    <div className="schedule-drawer-footer" style={{ padding: "1rem 1.4rem", borderTop: "1px solid var(--border-color)", background: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
+    <div className="schedule-drawer-footer" style={{ padding: "1rem 1.4rem", borderTop: "1px solid var(--border-color)", background: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
       <button type="button" className="btn btn-secondary" onClick={() => callApp("closeCommitteeDrawer")} style={{ padding: "0.6rem 1rem" }}>
         <i className="fas fa-times mr-1"></i> Fermer
       </button>
-      <button type="button" className="btn btn-primary" onClick={() => callApp("openCommitteeModalFromDrawer")} style={{ padding: "0.6rem 1.25rem", fontWeight: 700 }}>
+      <p id="com-drawer-lock" hidden style={{ flexBasis: "100%", margin: 0, fontSize: "0.78rem", color: "var(--text-muted)" }} />
+      <button type="button" id="com-drawer-btn-vote" className="btn btn-primary" onClick={() => callApp("openCommitteeModalFromDrawer")} style={{ padding: "0.6rem 1.25rem", fontWeight: 700 }}>
         <i className="fas fa-gavel mr-1"></i> Délibérer & Voter
       </button>
     </div>

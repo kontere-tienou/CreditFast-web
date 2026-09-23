@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { CfSelect } from '@/shared/ui/CfSelect';
+import { CfField } from '@/shared/ui/CfField';
 import { callApp } from '@/shared/ui/legacy';
 import { getUiSession } from '@/app/session';
 import {
@@ -95,8 +98,7 @@ export function LoanApplicationModal() {
      [MODAL] DEMANDE DE FINANCEMENT & CRÉDIT CREDITFAST (PARCOURS EN 6 ÉTAPES)
      Plateforme Régionale CreditFast UEMOA
      ==================================================================== */}
-<div id="modal-loan-application" className="modal-backdrop" style={{ display: "none", position: "fixed", inset: 0, zIndex: 2100, alignItems: "center", justifyContent: "center", background: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(5px)" }}>
-  <div className="modal-dialog modal-xl" style={{ maxWidth: "900px", width: "95%", maxHeight: "90vh", background: "var(--bg-surface)", borderRadius: "var(--radius-xl)", boxShadow: "var(--shadow-2xl)", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", overflow: "hidden", animation: "modalFadeIn 0.25s ease-out" }}>
+<AppModal id="modal-loan-application" parked size="xl" zIndex={2100}>
 
     {/* Modal Header */}
     <div className="modal-header" id="modal-loan-app-header" style={{ padding: "1.25rem 1.75rem", background: "linear-gradient(135deg, var(--cif-emerald-600, #518e45), var(--cif-emerald-700, #1b4332))", color: "white", borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
@@ -201,9 +203,9 @@ export function LoanApplicationModal() {
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
-          <button type="button" className="btn btn-primary" onClick={() => callApp("setModalWizardStep", 2)}>
+          <Button type="button" onClick={() => callApp("setModalWizardStep", 2)}>
             Suivant : Activité <i className="fas fa-arrow-right ml-1"></i>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -229,7 +231,7 @@ export function LoanApplicationModal() {
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Ancienneté de votre activité
               (Années)</label>
-            <input type="number" id="wiz-seniority" className="form-control" min="0" placeholder="0" />
+            <CfField kind="number" id="wiz-seniority" placeholder="0" />
           </div>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Emplacement Commercial /
@@ -238,42 +240,42 @@ export function LoanApplicationModal() {
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("setModalWizardStep", 1)}><i className="fas fa-arrow-left mr-1"></i> Précédent</button>
-          <button type="button" className="btn btn-primary" onClick={() => callApp("setModalWizardStep", 3)}>Suivant : Finances <i className="fas fa-arrow-right ml-1"></i></button>
+          <Button type="button" variant="secondary" onClick={() => callApp("setModalWizardStep", 1)}><i className="fas fa-arrow-left mr-1"></i> Précédent</Button>
+          <Button type="button" onClick={() => callApp("setModalWizardStep", 3)}>Suivant : Finances <i className="fas fa-arrow-right ml-1"></i></Button>
         </div>
       </div>
 
       {/* Step 3: Finances */}
       <div id="modal-wizard-step-3" className="modal-wizard-step-content" style={{ display: "none" }}>
-        <h4 style={{ marginBottom: "1.25rem", fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
+        <h4 style={{ marginBottom: "0.4rem", fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
           <i className="fas fa-calculator text-primary mr-2"></i> Étape 3 : Revenus, Charges & Capacité
         </h4>
+        <p style={{ margin: "0 0 1.25rem", fontSize: "0.82rem", color: "var(--text-secondary)" }}>Revenu, dépenses et mensualités en cours viennent du contrôle du compte. Ils ne se modifient pas ici.</p>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Revenu Mensuel Moyen de l'Activité
-              (FCFA) *</label>
-            <input type="number" id="wiz-income" className="form-control" min="0" placeholder="0" />
+              (FCFA)</label>
+            <CfField kind="amount" id="wiz-income" readOnly defaultValue="0" />
           </div>
           <div className="form-group">
-            <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Dépenses Mensuelles & Ménage (FCFA)
-              *</label>
-            <input type="number" id="wiz-expenses" className="form-control" min="0" placeholder="0" />
+            <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Dépenses Mensuelles & Ménage (FCFA)</label>
+            <CfField kind="amount" id="wiz-expenses" readOnly defaultValue="0" />
           </div>
         </div>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Mensualités d'autres crédits en cours
               (FCFA)</label>
-            <input type="number" id="wiz-debt" className="form-control" defaultValue="0" />
+            <CfField kind="amount" id="wiz-debt" readOnly defaultValue="0" />
           </div>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Nombre de personnes à charge</label>
-            <input type="number" id="wiz-dependents" className="form-control" min="0" placeholder="0" />
+            <CfField kind="number" id="wiz-dependents" placeholder="0" />
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("setModalWizardStep", 2)}><i className="fas fa-arrow-left mr-1"></i> Précédent</button>
-          <button type="button" className="btn btn-primary" onClick={() => callApp("setModalWizardStep", 4)}>Suivant : Demande <i className="fas fa-arrow-right ml-1"></i></button>
+          <Button type="button" variant="secondary" onClick={() => callApp("setModalWizardStep", 2)}><i className="fas fa-arrow-left mr-1"></i> Précédent</Button>
+          <Button type="button" onClick={() => callApp("setModalWizardStep", 4)}>Suivant : Demande <i className="fas fa-arrow-right ml-1"></i></Button>
         </div>
       </div>
 
@@ -289,11 +291,11 @@ export function LoanApplicationModal() {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Montant Demandé (FCFA) *</label>
-            <input type="number" id="wiz-amount" className="form-control" min="10000" step="50000" placeholder="10000" />
+            <CfField kind="amount" id="wiz-amount" placeholder="10 000" />
           </div>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Durée Souhaitée (Mois) *</label>
-            <input type="number" id="wiz-duration" className="form-control" min="1" max="60" placeholder="12" />
+            <CfField kind="number" id="wiz-duration" placeholder="12" />
           </div>
         </div>
         <div className="form-group">
@@ -324,8 +326,8 @@ export function LoanApplicationModal() {
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("setModalWizardStep", 3)}><i className="fas fa-arrow-left mr-1"></i> Précédent</button>
-          <button type="button" className="btn btn-primary" onClick={() => callApp("setModalWizardStep", 5)}>Suivant : Garanties <i className="fas fa-arrow-right ml-1"></i></button>
+          <Button type="button" variant="secondary" onClick={() => callApp("setModalWizardStep", 3)}><i className="fas fa-arrow-left mr-1"></i> Précédent</Button>
+          <Button type="button" onClick={() => callApp("setModalWizardStep", 5)}>Suivant : Garanties <i className="fas fa-arrow-right ml-1"></i></Button>
         </div>
       </div>
 
@@ -349,7 +351,7 @@ export function LoanApplicationModal() {
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Valeur Estimée de la Garantie
               (FCFA)</label>
-            <input type="number" id="wiz-guarantee-val" className="form-control" min="0" placeholder="0" />
+            <CfField kind="amount" id="wiz-guarantee-val" placeholder="0" />
           </div>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Description de la garantie</label>
@@ -366,9 +368,9 @@ export function LoanApplicationModal() {
                 Ajoutez une photo, un reçu, une attestation, un titre foncier ou tout document prouvant la garantie déclarée.
               </p>
             </div>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => document.getElementById('wiz-guarantee-file')?.click()} style={{ flex: "0 0 auto" }}>
+            <Button type="button" variant="secondary" className="btn-sm" onClick={() => document.getElementById('wiz-guarantee-file')?.click()} style={{ flex: "0 0 auto" }}>
               <i className="fas fa-paperclip mr-1"></i> Joindre le justificatif
-            </button>
+            </Button>
           </div>
           <input type="file" id="wiz-guarantee-file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} />
           <p id="wiz-guarantee-file-name" style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0.65rem 0 0" }}>
@@ -376,9 +378,9 @@ export function LoanApplicationModal() {
           </p>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("setModalWizardStep", 4)}><i className="fas fa-arrow-left mr-1"></i> Précédent</button>
-          <button type="button" className="btn btn-primary" onClick={() => callApp("setModalWizardStep", 6)}>Suivant : Justificatifs &
-            Signature <i className="fas fa-arrow-right ml-1"></i></button>
+          <Button type="button" variant="secondary" onClick={() => callApp("setModalWizardStep", 4)}><i className="fas fa-arrow-left mr-1"></i> Précédent</Button>
+          <Button type="button" onClick={() => callApp("setModalWizardStep", 6)}>Suivant : Justificatifs &
+            Signature <i className="fas fa-arrow-right ml-1"></i></Button>
         </div>
       </div>
 
@@ -403,9 +405,9 @@ export function LoanApplicationModal() {
                 Scannez le QR Code officiel de votre devis normalisé, facture DGI ou reçu.
               </p>
             </div>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => callApp("showToast", 'Joignez plutôt un fichier PDF ou photo. Le scan n’est pas requis pour envoyer.', 'info')} style={{ width: "100%", justifyContent: "center" }}>
+            <Button type="button" className="btn-sm" onClick={() => callApp("showToast", 'Joignez plutôt un fichier PDF ou photo. Le scan n’est pas requis pour envoyer.', 'info')} style={{ width: "100%", justifyContent: "center" }}>
               <i className="fas fa-qrcode mr-2"></i> Lancer la Caméra & Scanner QR
-            </button>
+            </Button>
           </div>
 
           {/* Option B: Téléverser un Fichier */}
@@ -428,9 +430,9 @@ export function LoanApplicationModal() {
               <option value="RELEVE_BANCAIRE">Relevé</option>
               <option value="CNI">Pièce d’identité</option>
             </CfSelect>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => document.getElementById('wiz-doc-file')?.click()} style={{ width: "100%", justifyContent: "center" }}>
+          <Button type="button" variant="secondary" className="btn-sm" onClick={() => document.getElementById('wiz-doc-file')?.click()} style={{ width: "100%", justifyContent: "center" }}>
               <i className="fas fa-folder-open mr-2"></i> Parcourir Fichiers...
-            </button>
+            </Button>
             <input type="file" id="wiz-doc-file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} />
             <p id="wiz-doc-file-name" style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0.5rem 0 0" }}>Aucune pièce sélectionnée</p>
           </div>
@@ -458,19 +460,18 @@ export function LoanApplicationModal() {
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("setModalWizardStep", 5)}><i className="fas fa-arrow-left mr-1"></i> Précédent</button>
-          <button type="button" className="btn btn-secondary" onClick={() => callApp("saveDraftCreditRequest")}>
+          <Button type="button" variant="secondary" onClick={() => callApp("setModalWizardStep", 5)}><i className="fas fa-arrow-left mr-1"></i> Précédent</Button>
+          <Button type="button" variant="secondary" onClick={() => callApp("saveDraftCreditRequest")}>
             <i className="fas fa-floppy-disk mr-1"></i> Enregistrer le brouillon
-          </button>
-          <button type="button" id="modal-loan-app-submit-btn" className="btn btn-success btn-lg" onClick={() => callApp("submitNewCreditRequest")}>
+          </Button>
+          <Button type="button" id="modal-loan-app-submit-btn" variant="success" className="btn-lg" onClick={() => callApp("submitNewCreditRequest")}>
             <i className="fas fa-paper-plane mr-2"></i> Confirmer & Soumettre ma Demande
-          </button>
+          </Button>
         </div>
       </div>
 
     </div>
-  </div>
-</div>
+</AppModal>
     </>
   );
 }

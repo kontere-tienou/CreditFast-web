@@ -4,12 +4,13 @@ import {
   hasActiveSavingsAccount,
   type ClientProfile,
 } from "@/api/profile";
-import { getMembership, type Membership } from "@/api/savings";
+import { type Membership } from "@/api/savings";
+import { getSavingsOnboarding, type SavingsOnboarding } from '@/api/savingsOnboarding';
 import { Screen } from "@/shared/ui/Screen";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { isSavingsAccount } from "./accountPolicy";
-import { membershipFieldLabels } from "./membershipFields";
 import { SavingsAccountOverview } from './SavingsAccountOverview';
+import { SavingsRequestStatus } from './SavingsRequestStatus';
 import {
   OPEN_SAVINGS,
   SAVINGS_CHANGED,
@@ -22,16 +23,19 @@ export function ClientSavingsPage() {
   const [membership, setMembership] = useState<Membership | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [lookupStatus, setLookupStatus] = useState<SavingsOnboarding['status'] | null>(null);
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoading(true);
       setError("");
       try {
+        const onboarding = await getSavingsOnboarding();
         const next = await fetchClientProfile();
         if (!mounted) return;
         setProfile(next);
-        const current = hasActiveSavingsAccount(next) ? null : await getMembership(next?.client_type);
+        setLookupStatus(onboarding.status);
+        const current = hasActiveSavingsAccount(next) ? null : onboarding.application;
         if (!mounted) return;
         setMembership(current);
       } catch {
@@ -62,10 +66,10 @@ export function ClientSavingsPage() {
         {error && <p role="alert">{error}</p>}
         {!loading && !error && (
           <>
-            {!active && <h2 className="savings-workspace-status">
+            {!active && !(membership && !editable) && <h2 className="savings-workspace-status">
               {membership
-                  ? `Adhésion : ${membershipStatusLabel(membership.status)}`
-                  : "Ouverture de compte épargne"}
+                  ? `Demande ${membership.reference || `#${membership.id}`} : ${membershipStatusLabel(membership.status)}`
+                  : lookupStatus === 'REVIEW_REQUIRED' ? 'Vérification du rattachement nécessaire' : lookupStatus === 'INACTIVE' ? 'Compte existant — contactez votre agence' : 'Préparer l’ouverture de votre compte épargne'}
             </h2>}
             {profile?.financial_accounts
               ?.filter(isSavingsAccount)
@@ -78,49 +82,38 @@ export function ClientSavingsPage() {
             {membership?.correction_reason && (
               <p>Éléments à compléter : {membership.correction_reason}</p>
             )}
-            {!active && (
+            {!active && editable && (
               <p>
-                La demande de prêt sera accessible après activation du compte
-                par l’administrateur.
+                {lookupStatus === 'INACTIVE' ? 'Votre compte existe déjà. Contactez votre agence pour vérifier sa situation et les démarches nécessaires à son activation.' : membership?.fields.purpose === 'IDENTITY_REVIEW' || lookupStatus === 'REVIEW_REQUIRED' ? 'Votre agence doit confirmer votre identité et le rattachement à un compte existant avant toute ouverture.' : 'La pré-demande en ligne prépare votre accueil. L’ouverture du compte sera finalisée en agence.'}
               </p>
             )}
-            {!active && (editable ? (
+            {!active && editable && (
               <button
                 className="btn btn-primary"
                 onClick={() => window.dispatchEvent(new Event(OPEN_SAVINGS))}
               >
                 {membership
-                  ? "Corriger ma fiche"
-                  : "Ouvrir / reprendre ma fiche d’adhésion"}
+                  ? "Compléter ma pré-demande"
+                  : lookupStatus === 'REVIEW_REQUIRED' || lookupStatus === 'INACTIVE' ? "Consulter les prochaines étapes" : "Commencer ma pré-demande"}
               </button>
-            ) : (
-              <p>
-                Votre fiche a été transmise. Vous pouvez actualiser son statut
-                ici.
-              </p>
-            ))}
-            {membership && (
-              <details>
-                <summary>Consulter ma fiche d’adhésion</summary>
-                <dl className="savings-review-values">
-                  {Object.entries(membership.fields).map(([key, value]) => (
-                    <div key={key}>
-                      <dt>
-                        {membershipFieldLabels[key] ?? key.replaceAll("_", " ")}
-                      </dt>
-                      <dd>{value || "—"}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <h3>Pièces reçues</h3>
-                <ul>
-                  {membership.documents.map((doc) => (
-                    <li key={doc.id}>
-                      {doc.label} — {doc.filename}
-                    </li>
-                  ))}
-                </ul>
-              </details>
+            )}
+            {membership && !editable && (
+              <SavingsRequestStatus
+                reference={membership.reference || `#${membership.id}`}
+                agencyName={membership.fields.agency_name || 'À confirmer avec votre conseiller'}
+                approved={membership.status === 'APPROVED'}
+                identityReview={membership.fields.purpose === 'IDENTITY_REVIEW'}
+                legalEntity={profile?.client_type === 'LEGAL_ENTITY'}
+                facts={[
+                  ['Nom', membership.fields.full_name],
+                  ['Téléphone', membership.fields.phone],
+                  ['Ville', membership.fields.city],
+                  ['Compte déclaré', membership.fields.account_number_hint],
+                ].filter((row): row is [string, string] => Boolean(row[1])).map(([label, value]) => ({ label, value }))}
+                documents={membership.documents}
+                actionLabel="Voir le suivi et les pièces à apporter"
+                onAction={() => window.dispatchEvent(new Event(OPEN_SAVINGS))}
+              />
             )}
           </>
         )}

@@ -1,7 +1,13 @@
+import { useState } from 'react';
 import { callApp } from '@/shared/ui/legacy';
+import { ComplementRequestDialog } from '@/features/workflow/ComplementRequestDialog';
+import { submitStructuredComplement } from '@/features/agent/fillAgentDrawers';
 
 export function AgentDossierDrawer() {
+  const [complementOpen, setComplementOpen] = useState(false);
+  const [complementBusy, setComplementBusy] = useState(false);
   return (
+    <>
 <div id="agent-drawer-backdrop" className="schedule-drawer-backdrop" onClick={() => callApp("closeAgentDrawer")}>
   <div className="schedule-drawer" onClick={(event) => event.stopPropagation()}>
     {/* Drawer Header */}
@@ -188,51 +194,11 @@ export function AgentDossierDrawer() {
         </div>
       </div>
 
-      {/* 6. Decision scoring */}
-      <div className="drawer-panel">
-        <div className="drawer-panel-header">
-          <h4 className="drawer-panel-title">
-            <i className="fas fa-chart-line text-purple"></i> Décision scoring
-          </h4>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
-            <span id="agent-drawer-score-val" style={{ fontSize: "1.25rem", fontWeight: 800, color: "#518e45", fontFamily: "var(--font-family-code)" }}>—</span>
-            <span style={{ fontSize: "0.75rem", color: "var(--text-subtle)" }}>/100</span>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", marginBottom: "0.65rem" }}>
-          <span id="agent-drawer-score-label" className="badge badge-submitted" style={{ fontSize: "0.7rem" }}>Non calculé</span>
-          <span style={{ color: "var(--text-muted)" }}>Indice de confiance : <strong id="agent-drawer-confidence-val" style={{ color: "var(--cif-emerald-600)" }}>—</strong></span>
-        </div>
-
-        <div style={{ height: "6px", background: "var(--bg-surface-secondary)", borderRadius: "var(--radius-full)", overflow: "hidden", border: "1px solid var(--border-color)" }}>
-          <div id="agent-drawer-score-progress" style={{ width: "0%", height: "100%", background: "linear-gradient(90deg, #518e45, #518e45)", borderRadius: "var(--radius-full)" }}></div>
-        </div>
-
-        <div className="decision-next-action">
-          <span className="decision-next-action-label">Prochaine action</span>
-          <strong id="agent-drawer-next-action">—</strong>
-        </div>
-
-        <p id="agent-drawer-decision-summary" className="decision-summary">
-          Score non calculé. Lancez l’analyse 360° pour obtenir une recommandation.
-        </p>
-
-        <div id="agent-drawer-decision-checklist" className="decision-checklist">
-          {/* Dynamic checklist */}
-        </div>
-
-        <div className="decision-factor-block">
-          <div className="decision-factor-title">Facteurs lus par le moteur</div>
-          <div id="agent-drawer-score-factors" className="decision-factor-list">
-            {/* Dynamic scoring factors */}
-          </div>
-        </div>
-      </div>
     </div>
 
     {/* Drawer Footer Actions */}
-    <div className="schedule-drawer-footer" style={{ justifyContent: "center" }}>
+    <div className="schedule-drawer-footer" style={{ justifyContent: "center", flexDirection: "column", alignItems: "stretch" }}>
+      <p id="agent-drawer-lock" hidden style={{ margin: "0 0 0.55rem", fontSize: "0.78rem", color: "var(--text-muted)" }} />
       <div
         id="agent-drawer-footer-actions"
         style={{
@@ -244,27 +210,31 @@ export function AgentDossierDrawer() {
           alignItems: "center",
         }}
       >
-        <button type="button" className="btn btn-secondary btn-sm agent-drawer-footer-btn" id="agent-drawer-btn-complements" onClick={() => callApp("requestComplementsFromAgentDrawer")}>
+        <button type="button" className="btn btn-secondary btn-sm agent-drawer-footer-btn" id="agent-drawer-btn-complements" onClick={() => setComplementOpen(true)}>
           <i className="fas fa-triangle-exclamation mr-1"></i> Demander des compléments
         </button>
-        <button type="button" className="btn btn-secondary btn-sm agent-drawer-footer-btn" onClick={() => callApp("openInspectionFromAgentDrawer")}>
+        <button type="button" className="btn btn-secondary btn-sm agent-drawer-footer-btn" id="agent-drawer-btn-inspection" onClick={() => callApp("openInspectionFromAgentDrawer")}>
           <i className="fas fa-motorcycle mr-1"></i> Contrôle terrain
         </button>
-        <button
-          type="button"
-          className="btn btn-sm agent-drawer-footer-btn"
-          id="agent-drawer-btn-360"
-          onClick={() => callApp("openAnalyst360FromAgent")}
-          style={{ background: "#5b4bdb", color: "#fff", border: "none", fontWeight: 700 }}
-        >
-          <i className="fas fa-magnifying-glass-chart mr-1"></i> Analyser 360°
-        </button>
-        <button type="button" className="btn btn-primary btn-sm agent-drawer-footer-btn" id="agent-drawer-btn-transfer" onClick={() => callApp("sendSelectedRequestToAnalysis")}>
+        <button type="button" className="btn btn-primary btn-sm agent-drawer-footer-btn" id="agent-drawer-btn-transfer" onClick={() => callApp("sendSelectedRequestToAnalysis")} style={{ gridColumn: "1 / -1" }}>
           <i className="fas fa-paper-plane mr-1"></i> Transmettre à l'analyste
         </button>
       </div>
     </div>
   </div>
 </div>
+    <ComplementRequestDialog
+      open={complementOpen}
+      busy={complementBusy}
+      onClose={() => setComplementOpen(false)}
+      onConfirm={(input) => {
+        setComplementBusy(true);
+        void submitStructuredComplement({ ...input, channel: 'agent' }).then((ok) => {
+          setComplementBusy(false);
+          if (ok) setComplementOpen(false);
+        });
+      }}
+    />
+    </>
   );
 }

@@ -16,7 +16,9 @@ import { Screen } from '@/shared/ui/Screen';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { StatCard } from '@/shared/ui/StatCard';
 import { Button } from '@/shared/ui/Button';
+import { CfField } from '@/shared/ui/CfField';
 import { AppTable } from '@/shared/ui/AppTable';
+import { parseAmount } from '@/shared/format/money';
 import {
   formatDate,
   formatFcfa,
@@ -144,8 +146,8 @@ export function AgentLoansPage() {
       toast.warning('Choisissez une échéance.');
       return;
     }
-    const amount = Number(paidAmount);
-    if (!Number.isFinite(amount) || amount < 0.01) {
+    const amount = parseAmount(paidAmount);
+    if (amount == null || amount < 0.01) {
       toast.warning('Indiquez le montant encaissé.');
       return;
     }
@@ -295,7 +297,7 @@ export function AgentLoansPage() {
               )}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Montant encaissé</label>
-                <input type="number" min="0.01" step="1" className="form-control" value={paidAmount} onChange={(event) => setPaidAmount(event.target.value)} disabled={!canRecord} />
+                <CfField kind="amount" value={paidAmount} onChange={(event) => setPaidAmount(event.target.value)} disabled={!canRecord} />
               </div>
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Date d’encaissement</label>

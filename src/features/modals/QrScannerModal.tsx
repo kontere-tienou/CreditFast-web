@@ -1,3 +1,5 @@
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { callApp } from '@/shared/ui/legacy';
 
 export function QrScannerModal() {
@@ -6,8 +8,7 @@ export function QrScannerModal() {
 {/* ====================================================================
      MODAL: SCANNER APPAREIL PHOTO & DÉTECTEUR QR CODES DOCUMENTS OFFICIELS UEMOA
      ==================================================================== */}
-<div id="modal-qr-scanner" className="modal-backdrop" style={{ display: "none" }}>
-  <div className="modal-dialog modal-dialog-lg qr-scanner-modal-dialog">
+<AppModal id="modal-qr-scanner" parked size="md" className="qr-scanner-modal-dialog">
     <div className="modal-header">
       <div className="modal-header-title">
         <i className="fas fa-camera text-primary mr-2"></i>
@@ -50,12 +51,12 @@ export function QrScannerModal() {
             Veuillez autoriser l'accès à la caméra dans les permissions du navigateur ou importer un fichier image.
           </p>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => callApp("startCameraFeed")}>
+            <Button type="button" className="btn-sm" onClick={() => callApp("startCameraFeed")}>
               <i className="fas fa-rotate-right"></i> Réessayer
-            </button>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => document.getElementById("qr-file-fallback-input")?.click()}>
+            </Button>
+            <Button type="button" variant="secondary" className="btn-sm" onClick={() => document.getElementById("qr-file-fallback-input")?.click()}>
               <i className="fas fa-image"></i> Importer Image
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -63,15 +64,15 @@ export function QrScannerModal() {
       {/* Controls Toolbar */}
       <div className="qr-controls-toolbar">
         <div className="qr-controls-left">
-          <button type="button" className="btn btn-secondary btn-sm" id="btn-qr-switch-camera" onClick={() => callApp("switchCameraFacingMode")} title="Changer d'objectif (Avant / Arrière)">
+          <Button type="button" variant="secondary" className="btn-sm" id="btn-qr-switch-camera" onClick={() => callApp("switchCameraFacingMode")} title="Changer d'objectif (Avant / Arrière)">
             <i className="fas fa-camera-rotate"></i> <span>Changer Caméra</span>
-          </button>
-          <button type="button" className="btn btn-secondary btn-sm" id="btn-qr-toggle-torch" onClick={() => callApp("toggleCameraTorch")} title="Allumer la lampe torche / Flash">
+          </Button>
+          <Button type="button" variant="secondary" className="btn-sm" id="btn-qr-toggle-torch" onClick={() => callApp("toggleCameraTorch")} title="Allumer la lampe torche / Flash">
             <i className="fas fa-bolt"></i> <span>Flash</span>
-          </button>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => document.getElementById("qr-file-fallback-input")?.click()} title="Analyser une image enregistrée">
+          </Button>
+          <Button type="button" variant="secondary" className="btn-sm" onClick={() => document.getElementById("qr-file-fallback-input")?.click()} title="Analyser une image enregistrée">
             <i className="fas fa-upload"></i> <span>Importer Fichier</span>
-          </button>
+          </Button>
           <input type="file" id="qr-file-fallback-input" accept="image/*" style={{ display: "none" }} onChange={(event) => callApp("handleQrImageUpload", event)} />
         </div>
 
@@ -89,15 +90,15 @@ export function QrScannerModal() {
           <span>Simulateur d'échantillons officiels UEMOA (Test instantané) :</span>
         </div>
         <div className="qr-demo-presets-buttons">
-          <button type="button" className="btn btn-secondary btn-xs" onClick={() => callApp("simulateQrScanPreset", 'cni')}>
+          <Button type="button" variant="secondary" className="btn-sm" onClick={() => callApp("simulateQrScanPreset", 'cni')}>
             <i className="fas fa-id-card text-emerald"></i> CNI Biométrique NINA
-          </button>
-          <button type="button" className="btn btn-secondary btn-xs" onClick={() => callApp("simulateQrScanPreset", 'invoice')}>
+          </Button>
+          <Button type="button" variant="secondary" className="btn-sm" onClick={() => callApp("simulateQrScanPreset", 'invoice')}>
             <i className="fas fa-receipt text-primary"></i> Facture Normalisée DGI
-          </button>
-          <button type="button" className="btn btn-secondary btn-xs" onClick={() => callApp("simulateQrScanPreset", 'rccm')}>
+          </Button>
+          <Button type="button" variant="secondary" className="btn-sm" onClick={() => callApp("simulateQrScanPreset", 'rccm')}>
             <i className="fas fa-certificate text-amber"></i> Registre RCCM & Activité
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -118,17 +119,16 @@ export function QrScannerModal() {
         </div>
 
         <div className="qr-result-actions">
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("resetQrScannerState")}>
+          <Button type="button" variant="secondary" className="btn-sm" onClick={() => callApp("resetQrScannerState")}>
             <i className="fas fa-arrows-rotate"></i> Scanner un autre document
-          </button>
-          <button type="button" className="btn btn-success" id="btn-apply-qr-data" onClick={() => callApp("applyQrScanData")}>
+          </Button>
+          <Button type="button" variant="success" id="btn-apply-qr-data" onClick={() => callApp("applyQrScanData")}>
             <i className="fas fa-check-double"></i> Appliquer les données au dossier
-          </button>
+          </Button>
         </div>
       </div>
     </div>
-  </div>
-</div>
+</AppModal>
     </>
   );
 }

@@ -1,4 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { savingsAgencyCode, ZoneSelect } from '@/features/client/ZoneSelect';
+import { CfField } from '@/shared/ui/CfField';
+import { parseAmount } from '@/shared/format/money';
 import { toast } from "@heroui/react";
 import {
   deleteProfilePhoto,
@@ -19,6 +22,7 @@ import {
 import { ROLE_PROFILES } from "@/app/roles";
 import { getUiSession, patchUiSession } from "@/app/session";
 import { Button } from "@/shared/ui/Button";
+import { AppModal } from "@/shared/ui/AppModal";
 import { notifyProfileChanged } from "@/features/workflow/workflow";
 
 type EditProfileModalProps = {
@@ -45,6 +49,7 @@ export function EditProfileModal({
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
   const [zone, setZone] = useState("");
+  const [agencyCode, setAgencyCode] = useState<string | undefined>();
   const [occupation, setOccupation] = useState("");
   const [address, setAddress] = useState("");
   const [activityId, setActivityId] = useState<number | undefined>();
@@ -142,6 +147,7 @@ export function EditProfileModal({
         if (profile) {
           setCity(profile.city || "");
           setZone(profile.residential_zone || "");
+          setAgencyCode(savingsAgencyCode(profile.financial_accounts || [], profile.agency_code));
           setOccupation(profile.occupation || "");
           setAddress(profile.address || "");
         }
@@ -248,7 +254,7 @@ export function EditProfileModal({
           occupation: occupation.trim() || activityType.trim() || null,
           address: address.trim() || null,
         });
-        const revenue = Number(monthlyRevenue || monthlyIncome);
+        const revenue = parseAmount(monthlyRevenue || monthlyIncome) ?? 0;
         if (activityType.trim() && revenue > 0) {
           const saved = await saveEconomicActivity(
             {
@@ -263,14 +269,14 @@ export function EditProfileModal({
             setActivityId(saved.id);
           }
         }
-        const income = Number(monthlyIncome || monthlyRevenue);
-        const charges = Number(monthlyExpenses);
+        const income = parseAmount(monthlyIncome || monthlyRevenue) ?? 0;
+        const charges = parseAmount(monthlyExpenses) ?? 0;
         if (income > 0 || charges > 0) {
           await saveFinancialProfile({
             monthly_income: income || 0,
-            other_income: Number(otherIncome) || 0,
+            other_income: parseAmount(otherIncome) ?? 0,
             monthly_expenses: charges || 0,
-            existing_debt_payment: Number(debt) || 0,
+            existing_debt_payment: parseAmount(debt) ?? 0,
             dependents_count: Number(dependents) || 0,
           });
         }
@@ -314,41 +320,19 @@ export function EditProfileModal({
   };
 
   return (
-    <div
-      className="cf-app-modal-backdrop"
-      onClick={(event) => event.target === event.currentTarget && onClose()}
+    <AppModal
+      className="cf-profile-modal"
+      title="Modifier mon profil"
+      titleId="edit-profile-title"
+      icon="fa-user-pen"
+      subtitle={
+        isClient
+          ? "Adresse, activité, revenus et mot de passe"
+          : "Photo, coordonnées et mot de passe"
+      }
+      onClose={onClose}
+      closeDisabled={saving}
     >
-      <div
-        className="cf-app-modal cf-profile-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-profile-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="cf-app-modal-header">
-          <div className="cf-app-modal-header-main">
-            <div className="cf-app-modal-icon">
-              <i className="fas fa-user-pen"></i>
-            </div>
-            <div>
-              <h3 id="edit-profile-title">Modifier mon profil</h3>
-              <p>
-                {isClient
-                  ? "Adresse, activité, revenus et mot de passe"
-                  : "Photo, coordonnées et mot de passe"}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="cf-app-modal-close"
-            onClick={onClose}
-            title="Fermer"
-          >
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-
         <form onSubmit={(event) => void onSubmit(event)}>
           <div className="cf-app-modal-body">
             <div className="cf-app-modal-summary">
@@ -422,12 +406,7 @@ export function EditProfileModal({
                   </label>
                   <label className="form-group">
                     <span className="form-label">Quartier / commune</span>
-                    <input
-                      className="form-control"
-                      value={zone}
-                      onChange={(event) => setZone(event.target.value)}
-                      placeholder="Commune V"
-                    />
+                    <ZoneSelect value={zone} onChange={setZone} agencyCode={agencyCode} />
                   </label>
                   <label
                     className="form-group"
@@ -463,73 +442,33 @@ export function EditProfileModal({
                   </label>
                   <label className="form-group">
                     <span className="form-label">Revenu mensuel (FCFA)</span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={0}
-                      value={monthlyIncome}
-                      onChange={(event) => setMonthlyIncome(event.target.value)}
-                    />
+                    <CfField kind="amount" value={monthlyIncome} onChange={(event) => setMonthlyIncome(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Autres revenus (FCFA)</span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={0}
-                      value={otherIncome}
-                      onChange={(event) => setOtherIncome(event.target.value)}
-                    />
+                    <CfField kind="amount" value={otherIncome} onChange={(event) => setOtherIncome(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">
                       Charges mensuelles (FCFA)
                     </span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={0}
-                      value={monthlyExpenses}
-                      onChange={(event) =>
-                        setMonthlyExpenses(event.target.value)
-                      }
-                    />
+                    <CfField kind="amount" value={monthlyExpenses} onChange={(event) => setMonthlyExpenses(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">
                       Autres mensualités (FCFA)
                     </span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={0}
-                      value={debt}
-                      onChange={(event) => setDebt(event.target.value)}
-                    />
+                    <CfField kind="amount" value={debt} onChange={(event) => setDebt(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">
                       Chiffre d’affaires déclaré
                     </span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={0}
-                      value={monthlyRevenue}
-                      onChange={(event) =>
-                        setMonthlyRevenue(event.target.value)
-                      }
-                    />
+                    <CfField kind="amount" value={monthlyRevenue} onChange={(event) => setMonthlyRevenue(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Personnes à charge</span>
-                    <input
-                      className="form-control"
-                      type="number"
-                      min={0}
-                      value={dependents}
-                      onChange={(event) => setDependents(event.target.value)}
-                    />
+                    <CfField kind="number" value={dependents} onChange={(event) => setDependents(event.target.value)} />
                   </label>
                 </div>
               </>
@@ -632,7 +571,6 @@ export function EditProfileModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </AppModal>
   );
 }

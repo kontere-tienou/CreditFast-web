@@ -48,7 +48,6 @@ export const ROLE_PERMISSION_GROUPS: PermissionGroup[] = [
       { id: 'analyst.review', label: 'Enregistrer une revue' },
       { id: 'analyst.anomalies', label: 'Résoudre une anomalie' },
       { id: 'analyst.validation', label: 'Validation humaine' },
-      { id: 'scoring.evaluate', label: 'Calculer / lire le scoring' },
     ],
   },
   {
@@ -57,6 +56,7 @@ export const ROLE_PERMISSION_GROUPS: PermissionGroup[] = [
     items: [
       { id: 'committee.requests', label: 'File comité' },
       { id: 'committee.decide', label: 'Décider (octroi / amendement / refus)' },
+      { id: 'scoring.evaluate', label: 'Lire le score calculé à l’arrivée du dossier' },
     ],
   },
   {
@@ -103,7 +103,6 @@ export const SYSTEM_ROLES: RoleRecord[] = [
     system: true,
     permissions: [
       ...ROLE_PERMISSION_GROUPS.find((group) => group.id === 'agent')!.items.map((item) => item.id),
-      'scoring.evaluate',
       'loans.read',
       ...SHARED,
     ],

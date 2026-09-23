@@ -5,6 +5,7 @@ import {
   type Membership,
 } from "@/api/savings";
 import { isApiError } from "@/api/errors";
+import { verifySavingsIdentity } from '@/api/savingsOnboarding';
 import { membershipFieldLabels as labels } from "@/features/savings/membershipFields";
 import "@/features/savings/savings.css";
 import {
@@ -74,6 +75,7 @@ export function AdminSavingsMemberships() {
           ? {
               account_number: value("account_number"),
               caisse_signature: value("caisse_signature"),
+              agency_finalized: data.get('agency_finalized') === 'on',
             }
           : decision === "REJECTED"
             ? { rejection_reason: value("rejection_reason") }
@@ -208,9 +210,24 @@ export function AdminSavingsMemberships() {
               <p>{row.rejection_reason || row.correction_reason}</p>
             )}
             {row.status === "PENDING" && (
+              <>
+              {row.fields.purpose === 'IDENTITY_REVIEW' && <form onSubmit={async event => {
+                event.preventDefault(); if (busy !== null) return;
+                const fields = Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>;
+                setBusy(row.id); setError(''); setNotice('');
+                try { await verifySavingsIdentity(row, { ...fields, agency_finalized: fields.agency_finalized === 'on' }); await load(); window.dispatchEvent(new Event(SAVINGS_CHANGED)); setNotice('Identité vérifiée. Consultez le résultat du rapprochement avant de poursuivre.'); }
+                catch (cause) { setError(cause instanceof Error ? cause.message : 'Vérification impossible.'); }
+                finally { setBusy(null); }
+              }}><fieldset className="savings-section" disabled={busy !== null}><legend>Contrôle de l’identité en agence</legend><p>Relever la référence sur l’original présenté. Une correspondance unique rattache le compte existant ; l’absence confirmée de compte permet de poursuivre l’ouverture.</p><div className="savings-grid">
+                <label>Type de référence *<select className="form-control" name="identity_type" required><option value="">Choisir</option>{(row.client_type === 'LEGAL_ENTITY' ? ['RCCM', 'NIF'] : ['CNI', 'NINA', 'PASSEPORT']).map(value => <option key={value}>{value}</option>)}</select></label>
+                <label>Pays émetteur (code) *<input className="form-control" name="identity_country" defaultValue="ML" required maxLength={3} /></label>
+                <label>Autorité émettrice *<input className="form-control" name="identity_issuer" required maxLength={100} /></label>
+                <label>Numéro de référence *<input className="form-control" name="identity_number" required maxLength={100} /></label>
+              </div><label><input type="checkbox" name="agency_finalized" required /> J’ai vérifié l’identité et les originaux en agence.</label><button className="btn btn-primary" type="submit">Confirmer l’identité et rechercher le compte</button></fieldset></form>}
               <form onSubmit={(event) => void review(event, row)}>
                 <fieldset disabled={busy !== null} className="savings-section">
                   <legend>Décision de l’administrateur</legend>
+                  {row.kind === 'PRE_APPLICATION' && <label><input type="checkbox" name="agency_finalized" /> Le client s’est présenté en agence ; la procédure d’ouverture et les contrôles sont finalisés (obligatoire pour activer).</label>}
                   <div className="savings-grid">
                     <label>
                       Décision
@@ -262,6 +279,7 @@ export function AdminSavingsMemberships() {
                   </p>
                 </fieldset>
               </form>
+              </>
             )}
           </details>
         ))}

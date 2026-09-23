@@ -2281,10 +2281,36 @@ button.auth-link-subtle {
   box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.12);
 }
 
-.form-control:disabled {
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-muted);
+.form-control:disabled,
+.form-control[readonly] {
+  opacity: 0.7;
   cursor: not-allowed;
+  background: var(--bg-surface-secondary);
+}
+
+.cf-field.form-control {
+  height: 2.75rem;
+  min-height: 2.75rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-family: var(--font-family-body);
+}
+
+.cf-field.cf-amount {
+  font-family: var(--font-family-code);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 select.form-control {
@@ -3238,9 +3264,43 @@ textarea.form-control {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.doc-lightbox-title-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+#doc-lightbox-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#doc-lightbox-meta {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#doc-lightbox-badge,
+.doc-lightbox-controls {
+  flex-shrink: 0;
+}
+
+.doc-lightbox-controls {
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .doc-lightbox-icon {
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);

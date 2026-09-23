@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AssignmentQueue } from './AssignmentQueue';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@heroui/react';
 import { Screen } from '@/shared/ui/Screen';
@@ -92,6 +93,7 @@ export function AdminDashboardPage() {
 
   return (
     <Screen viewId="view-role-admin">
+      <AssignmentQueue />
       <PageHeader
         title="Administration Système CreditFast"
         crumbs={['Contrôle', 'Pilotage opérationnel']}

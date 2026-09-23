@@ -86,7 +86,7 @@ export function ComplementsDrawer() {
           <div className="drawer-panel-header">
             <h4 className="drawer-panel-title"><i className="fas fa-cloud-arrow-up text-primary mr-1"></i> Réceptionner la Pièce Directement</h4>
           </div>
-          <div style={{ border: "2px dashed var(--border-color)", borderRadius: "var(--radius-md)", padding: "1rem", textAlign: "center", background: "var(--bg-body)", cursor: "pointer" }} onClick={() => callApp("triggerDrawerFileUpload")}>
+          <div id="comp-drawer-upload" style={{ border: "2px dashed var(--border-color)", borderRadius: "var(--radius-md)", padding: "1rem", textAlign: "center", background: "var(--bg-body)", cursor: "pointer" }} onClick={() => callApp("triggerDrawerFileUpload")}>
             <i className="fas fa-file-circle-plus text-primary" style={{ fontSize: "1.6rem", marginBottom: "0.35rem", display: "block" }}></i>
             <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-primary)", display: "block" }}>Scan agence / dépôt GED</span>
             <span style={{ fontSize: "0.7rem", color: "var(--text-subtle)" }}>Prévu pour le mobile agent et la GED connectée</span>
@@ -95,7 +95,8 @@ export function ComplementsDrawer() {
       </div>
 
       {/* Sidedrawer Footer Actions */}
-      <div className="schedule-drawer-footer">
+      <div className="schedule-drawer-footer" style={{ flexWrap: "wrap" }}>
+        <p id="comp-drawer-lock" hidden style={{ flexBasis: "100%", margin: "0 0 0.45rem", fontSize: "0.78rem", color: "var(--text-muted)" }} />
         <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("closeComplementsDrawer")}>Fermer</button>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button type="button" id="comp-drawer-btn-remind" className="btn btn-secondary btn-sm" onClick={() => callApp("triggerReminderFromDrawer")}>

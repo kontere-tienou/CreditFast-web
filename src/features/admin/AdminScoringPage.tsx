@@ -3,6 +3,7 @@ import { toast } from '@heroui/react';
 import { Screen } from '@/shared/ui/Screen';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
+import { CfField } from '@/shared/ui/CfField';
 import { CfSelect } from '@/shared/ui/CfSelect';
 import { AppTable } from '@/shared/ui/AppTable';
 import { Badge } from '@/components/base/badges/badges';
@@ -210,7 +211,7 @@ export function AdminScoringPage() {
           </label>
           <label className="form-group">
             <span className="form-label">Poids (0–100)</span>
-            <input className="form-control" type="number" min={0} max={100} step="0.1" required value={rule.weight} onChange={(event) => setRule({ ...rule, weight: event.target.value })} />
+            <CfField kind="decimal" required value={rule.weight} onChange={(event) => setRule({ ...rule, weight: event.target.value })} />
           </label>
           <label className="form-group">
             <span className="form-label">Description</span>

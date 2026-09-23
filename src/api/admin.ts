@@ -114,7 +114,6 @@ export const STAFF_ROLE_CATALOG: Record<
       'Saisir comptes institutionnels, mouvements et épargne (mode STANDARD)',
       'Lister / lire les fiches clients',
       'Décaisser un prêt et enregistrer un remboursement',
-      'Déclencher le scoring (sans octroi)',
     ],
   },
   analyst: {
@@ -130,7 +129,7 @@ export const STAFF_ROLE_CATALOG: Record<
       'Résoudre une anomalie',
       'Validation humaine (TO_COMPLETE renvoie au client)',
       'Vérifier KYC et garanties (contrats analyste)',
-      'Déclencher le scoring et lire l’analyse',
+      'Analyse 360° sans calcul ni lecture du score',
     ],
   },
   committee_member: {
@@ -144,6 +143,7 @@ export const STAFF_ROLE_CATALOG: Record<
       'Lister la file comité',
       'Décider APPROVED / AMENDED / refus',
       'APPROVED ou AMENDED crée le prêt sans décaissement',
+      'Lire le score calculé à l’arrivée du dossier',
     ],
   },
 };

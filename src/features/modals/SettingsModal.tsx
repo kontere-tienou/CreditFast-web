@@ -1,3 +1,5 @@
+import { AppModal } from '@/shared/ui/AppModal';
+import { Button } from '@/shared/ui/Button';
 import { CfSelect } from '@/shared/ui/CfSelect';
 import { callApp } from '@/shared/ui/legacy';
 
@@ -7,8 +9,7 @@ export function SettingsModal() {
 {/* ==========================================================================
      7. MODAL: PARAMÈTRES & PRÉFÉRENCES UTILISATEUR (SETTINGS)
      ========================================================================== */}
-<div id="settings-modal" className="modal-backdrop" style={{ display: "none" }}>
-  <div className="modal-dialog">
+<AppModal id="settings-modal" parked size="md">
     <div className="modal-header">
       <div>
         <h3 style={{ fontSize: "1.15rem", marginBottom: "2px" }}>
@@ -75,13 +76,12 @@ export function SettingsModal() {
     </div>
 
     <div className="modal-footer">
-      <button type="button" className="btn btn-secondary btn-sm" onClick={() => callApp("closeSettingsModal")}>Fermer</button>
-      <button type="button" className="btn btn-primary btn-sm" onClick={() => callApp("saveSettings")}>
+      <Button type="button" variant="secondary" className="btn-sm" onClick={() => callApp("closeSettingsModal")}>Fermer</Button>
+      <Button type="button" className="btn-sm" onClick={() => callApp("saveSettings")}>
         <i className="fas fa-check mr-1"></i> Enregistrer Préférences
-      </button>
+      </Button>
     </div>
-  </div>
-</div>
+</AppModal>
     </>
   );
 }

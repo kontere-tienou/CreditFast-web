@@ -14,10 +14,11 @@ const FILTERS = [
   { id: 'APPROVED', label: 'Accordés' },
   { id: 'AMENDED', label: 'Accordés avec conditions' },
   { id: 'REJECTED', label: 'Refusés' },
+  { id: 'ADJOURNED', label: 'Ajournés' },
 ] as const;
 
 export function CommitteeDossiersPage() {
-  const { items, loading, reload, pending, approved, amended, rejected, volume, envelope } = useCommitteeWorkspace();
+  const { items, loading, reload, pending, approved, amended, rejected, adjourned, volume, envelope } = useCommitteeWorkspace();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['id']>('COMMITTEE');
   const [query, setQuery] = useState('');
 
@@ -28,8 +29,9 @@ export function CommitteeDossiersPage() {
       APPROVED: approved.length,
       AMENDED: amended.length,
       REJECTED: rejected.length,
+      ADJOURNED: adjourned.length,
     }),
-    [items.length, pending.length, approved.length, amended.length, rejected.length],
+    [items.length, pending.length, approved.length, amended.length, rejected.length, adjourned.length],
   );
 
   return (

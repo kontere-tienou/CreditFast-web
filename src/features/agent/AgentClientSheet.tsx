@@ -16,6 +16,8 @@ import {
   type SavingsHistory,
 } from '@/api';
 import { Button } from '@/shared/ui/Button';
+import { AppModal } from '@/shared/ui/AppModal';
+import { CfField } from '@/shared/ui/CfField';
 import { CfSelect } from '@/shared/ui/CfSelect';
 import { formatDate, formatFcfa } from '@/features/workflow/workflow';
 
@@ -230,26 +232,20 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
   const kyc = (client?.kyc_status || '').toUpperCase();
 
   return (
-    <div className="cf-app-modal-backdrop" onClick={(event) => event.target === event.currentTarget && onClose()}>
-      <div className="cf-app-modal" role="dialog" aria-modal="true" aria-labelledby="agent-client-sheet-title" style={{ maxWidth: 760 }} onClick={(event) => event.stopPropagation()}>
-        <div className="cf-app-modal-header">
-          <div className="cf-app-modal-header-main">
-            <div className="cf-app-modal-icon">
-              <i className="fas fa-id-card"></i>
-            </div>
-            <div className="min-w-0">
-              <h3 id="agent-client-sheet-title">{name}</h3>
-              <p>
-                {client?.client_number ? `N° ${client.client_number} · ` : ''}
-                {client?.user?.phone || ''}
-                {client?.city ? ` · ${client.city}${client.residential_zone ? `, ${client.residential_zone}` : ''}` : ''}
-              </p>
-            </div>
-          </div>
-          <button type="button" className="cf-app-modal-close" onClick={onClose} title="Fermer">
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
+    <AppModal
+      width={760}
+      title={name}
+      titleId="agent-client-sheet-title"
+      icon="fa-id-card"
+      subtitle={
+        <>
+          {client?.client_number ? `N° ${client.client_number} · ` : ''}
+          {client?.user?.phone || ''}
+          {client?.city ? ` · ${client.city}${client.residential_zone ? `, ${client.residential_zone}` : ''}` : ''}
+        </>
+      }
+      onClose={onClose}
+    >
 
         <div className="cf-app-modal-body">
           {loading && !client ? (
@@ -346,7 +342,7 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
                   </label>
                   <label className="form-group">
                     <span className="form-label">Solde actuel (FCFA)</span>
-                    <input className="form-control" type="number" min={0} step={100} value={accountBalance} onChange={(event) => setAccountBalance(event.target.value)} />
+                    <CfField kind="amount" value={accountBalance} onChange={(event) => setAccountBalance(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Date d’ouverture</span>
@@ -390,7 +386,7 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
                   </label>
                   <label className="form-group">
                     <span className="form-label">Montant (FCFA)</span>
-                    <input className="form-control" type="number" min={1} step={100} value={txAmount} onChange={(event) => setTxAmount(event.target.value)} required />
+                    <CfField kind="amount" value={txAmount} onChange={(event) => setTxAmount(event.target.value)} required />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Date</span>
@@ -496,27 +492,27 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
                   </label>
                   <label className="form-group">
                     <span className="form-label">Total des dépôts (FCFA)</span>
-                    <input className="form-control" type="number" min={0} step={100} value={svDeposits} onChange={(event) => setSvDeposits(event.target.value)} />
+                    <CfField kind="amount" value={svDeposits} onChange={(event) => setSvDeposits(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Nombre de dépôts</span>
-                    <input className="form-control" type="number" min={0} step={1} value={svDepositCount} onChange={(event) => setSvDepositCount(event.target.value)} />
+                    <CfField kind="number" value={svDepositCount} onChange={(event) => setSvDepositCount(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Total des retraits (FCFA)</span>
-                    <input className="form-control" type="number" min={0} step={100} value={svWithdrawals} onChange={(event) => setSvWithdrawals(event.target.value)} />
+                    <CfField kind="amount" value={svWithdrawals} onChange={(event) => setSvWithdrawals(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Nombre de retraits</span>
-                    <input className="form-control" type="number" min={0} step={1} value={svWithdrawalCount} onChange={(event) => setSvWithdrawalCount(event.target.value)} />
+                    <CfField kind="number" value={svWithdrawalCount} onChange={(event) => setSvWithdrawalCount(event.target.value)} />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Solde moyen (FCFA)</span>
-                    <input className="form-control" type="number" min={0} step={100} value={svAverage} onChange={(event) => setSvAverage(event.target.value)} required />
+                    <CfField kind="amount" value={svAverage} onChange={(event) => setSvAverage(event.target.value)} required />
                   </label>
                   <label className="form-group">
                     <span className="form-label">Solde de fin de période (FCFA)</span>
-                    <input className="form-control" type="number" min={0} step={100} value={svClosing} onChange={(event) => setSvClosing(event.target.value)} required />
+                    <CfField kind="amount" value={svClosing} onChange={(event) => setSvClosing(event.target.value)} required />
                   </label>
                   <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                     <Button type="button" variant="secondary" className="btn-sm" onClick={() => setPanel('none')}>
@@ -537,7 +533,6 @@ export function AgentClientSheet({ clientId, onClose, onChanged }: AgentClientSh
             Fermer
           </Button>
         </div>
-      </div>
-    </div>
+    </AppModal>
   );
 }

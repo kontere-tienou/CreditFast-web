@@ -16,6 +16,7 @@ export type FinancialAccount = {
   holder_name?: string;
   caisse_name?: string;
   guichet_name?: string;
+  agency_code?: string;
 };
 
 export type SavingsHistory = {
@@ -41,6 +42,7 @@ export type ClientProfile = {
   legal_form?: string | null;
   kyc_status?: string;
   city?: string | null;
+  agency_code?: string | null;
   residential_zone?: string | null;
   occupation?: string | null;
   address?: string | null;
@@ -91,6 +93,7 @@ export function asAccounts(value: unknown): FinancialAccount[] {
       holder_name: typeof row.holder_name === 'string' ? row.holder_name : undefined,
       caisse_name: typeof row.caisse_name === 'string' ? row.caisse_name : undefined,
       guichet_name: typeof row.guichet_name === 'string' ? row.guichet_name : undefined,
+      agency_code: typeof row.agency_code === 'string' ? row.agency_code : undefined,
     };
   });
 }
@@ -298,6 +301,27 @@ export async function updateClientProfile(body: UpdateClientProfilePayload) {
       ? (record.client as ClientProfile)
       : (payload as ClientProfile);
   return nested;
+}
+
+export async function fetchAccountCheck(): Promise<FinancialProfile | null> {
+  let payload: unknown;
+  try {
+    payload = await apiJson<unknown>("/profile/account-check");
+  } catch (error) {
+    if (isApiError(error) && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+  const nested = unwrapObject(payload, ["account_check", "data"]) ?? (payload && typeof payload === "object" ? payload as Record<string, unknown> : null);
+  if (!nested) {
+    return null;
+  }
+  return {
+    monthly_income: asNumber(nested.monthly_income),
+    monthly_expenses: asNumber(nested.monthly_expenses),
+    existing_debt_payment: asNumber(nested.existing_debt_payment),
+  };
 }
 
 export async function fetchFinancialProfile(): Promise<FinancialProfile | null> {

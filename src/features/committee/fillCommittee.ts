@@ -1,10 +1,11 @@
 import { toast } from '@heroui/react';
+import { formatAmount, parseAmount, parseDecimal } from '@/shared/format/money';
 import {
   getCreditRequest,
   listCreditRequestDocuments,
   listCreditRequestGuarantees,
   listCommitteeRequests,
-  loadCreditAnalysis,
+  getCreditAnalysis,
   submitCommitteeDecision,
   type CreditAnalysis,
   type CreditDocument,
@@ -18,6 +19,7 @@ import {
   formatDate,
   formatFcfa,
   getSelectedCreditRequestId,
+  stageLockMessage,
   notifyRequestsChanged,
   setSelectedCreditRequestId,
 } from '@/features/workflow/workflow';
@@ -89,17 +91,33 @@ function analystNotes(analysis: CreditAnalysis | null, row: CreditRequest) {
   return parts.join(' ');
 }
 
-function riskTone(score: number | null) {
+function recommendationTone(recommendation?: string) {
+  const key = (recommendation || '').toUpperCase();
+  if (key === 'FAVORABLE') {
+    return { label: 'Recommandation favorable', cls: 'badge badge-approved', tone: 'is-good' };
+  }
+  if (key === 'RESERVED') {
+    return { label: 'Recommandation réservée', cls: 'badge badge-warning', tone: 'is-warn' };
+  }
+  if (key === 'UNFAVORABLE') {
+    return { label: 'Recommandation défavorable', cls: 'badge badge-rejected', tone: 'is-bad' };
+  }
+  return { label: 'Non calculée', cls: 'badge badge-submitted', tone: '' };
+}
+
+function placeScoreMarker(id: string, score: number | null, tone: string) {
+  const marker = document.getElementById(id);
+  if (!marker) {
+    return;
+  }
   if (score == null) {
-    return { label: 'Non calculé', cls: 'badge badge-submitted' };
+    marker.style.left = '0%';
+    marker.className = 'com-score-marker is-hidden';
+    return;
   }
-  if (score >= 75) {
-    return { label: 'Risque faible', cls: 'badge badge-approved' };
-  }
-  if (score >= 50) {
-    return { label: 'Risque modéré', cls: 'badge badge-submitted' };
-  }
-  return { label: 'Risque élevé', cls: 'badge badge-rejected' };
+  const clamped = Math.max(0, Math.min(100, score));
+  marker.style.left = `${clamped}%`;
+  marker.className = `com-score-marker ${tone}`.trim();
 }
 
 type CommitteeAuditEvent = {
@@ -149,7 +167,7 @@ function isRejectedStatus(status?: string | null) {
 }
 
 function isFinalDecision(row: CreditRequest) {
-  return ['APPROVED', 'REJECTED', 'AMENDED'].includes((row.status || '').toUpperCase());
+  return ['APPROVED', 'REJECTED', 'AMENDED', 'ADJOURNED'].includes((row.status || '').toUpperCase());
 }
 
 function renderCommitteeAuditTrail(events: CommitteeAuditEvent[]) {
@@ -212,11 +230,11 @@ function buildCommitteeAuditTrail(row: CreditRequest, analysis: CreditAnalysis |
       state: guaranteeVerified ? 'done' : 'warn',
     },
     {
-      title: 'Score et avis analyste',
+      title: 'Score calculé à l’arrivée au comité',
       detail: analysis
-        ? `Score ${score ?? '—'}/100, ${scoringLabel(analysis.recommendation).toLowerCase()}, confiance ${formatScore(analysis.confidence_score) ?? '—'}%.`
-        : 'Analyse risque non disponible au moment du vote.',
-      actor: 'Analyste risque',
+        ? `Score ${score ?? '—'}/100. ${recommendationTone(analysis.recommendation).label}.`
+        : 'Le score est calculé quand le dossier arrive au comité.',
+      actor: 'Comité',
       date: analysis?.created_at,
       icon: 'fa-chart-line',
       state: analysis ? 'done' : 'warn',
@@ -236,7 +254,7 @@ function buildCommitteeAuditTrail(row: CreditRequest, analysis: CreditAnalysis |
   if (row.loan_id || row.loan?.id) {
     events.push({
       title: 'Prêt créé après décision',
-      detail: `Contrat prêt #${row.loan_id ?? row.loan?.id} généré, décaissement à suivre par agent/admin.`,
+      detail: `Prêt #${row.loan_id ?? row.loan?.id} : le montant est versé sur le compte épargne et l’échéancier est lancé.`,
       actor: 'Back-office',
       date: null,
       icon: 'fa-file-contract',
@@ -249,8 +267,8 @@ function buildCommitteeAuditTrail(row: CreditRequest, analysis: CreditAnalysis |
 
 function fieldNumber(id: string, fallback?: number) {
   const node = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
-  const value = Number(node?.value);
-  if (Number.isFinite(value) && value > 0) {
+  const value = id === 'com-interest-rate' ? parseDecimal(node?.value) : parseAmount(node?.value);
+  if (value != null && value > 0) {
     return value;
   }
   return fallback;
@@ -287,7 +305,7 @@ function bindLiveEstimate(row: CreditRequest) {
   const update = () => {
     const amount = fieldNumber('com-approved-amount', row.requested_amount) ?? 0;
     const duration = fieldNumber('com-approved-duration', row.duration_months) ?? 12;
-    const rate = fieldNumber('com-interest-rate', 11.5) ?? 11.5;
+    const rate = fieldNumber('com-interest-rate', 15) ?? 15;
     const monthly =
       duration > 0 ? Math.round((amount * (1 + (rate / 100) * (duration / 12))) / duration) : 0;
     const income = row.declared_monthly_income ?? 0;
@@ -320,7 +338,7 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: C
   const income = row.declared_monthly_income;
   const expenses = row.declared_monthly_expenses;
   const disposable = income != null && expenses != null ? income - expenses : undefined;
-  const risk = riskTone(score);
+  const recommendation = recommendationTone(analysis?.recommendation);
   const cashflow = formatScore(analysis?.repayment_capacity_score ?? analysis?.income_consistency_score);
   const guarantee = formatScore(analysis?.guarantee_score);
   const stability = formatScore(analysis?.credit_history_score ?? analysis?.activity_score);
@@ -330,10 +348,15 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: C
   setText('com-requested-amount', formatFcfa(row.requested_amount));
   setText('com-requested-duration', row.duration_months ? `${row.duration_months} mois` : '—');
   setText('com-score-value', score != null ? String(score) : '—');
-  setHtml('com-risk-level', risk.label);
+  setHtml('com-risk-level', recommendation.label);
   const riskEl = document.getElementById('com-risk-level');
   if (riskEl) {
-    riskEl.className = risk.cls;
+    riskEl.className = `com-score-reco ${recommendation.tone}`.trim();
+  }
+  placeScoreMarker('com-score-marker', score, recommendation.tone);
+  const gauge = document.getElementById('com-score-gauge');
+  if (gauge) {
+    gauge.setAttribute('aria-label', score != null ? `Score ${score} sur 100. ${recommendation.label}.` : 'Score non calculé.');
   }
   setText('com-disposable-income', formatFcfa(disposable));
   setText(
@@ -343,7 +366,7 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: C
 
   const amountInput = document.getElementById('com-approved-amount') as HTMLInputElement | null;
   if (amountInput) {
-    amountInput.value = String(row.requested_amount ?? '');
+    amountInput.value = row.requested_amount != null ? formatAmount(row.requested_amount) : '';
   }
   const durationSelect = document.getElementById('com-approved-duration') as HTMLSelectElement | null;
   if (durationSelect && row.duration_months) {
@@ -361,12 +384,29 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: C
     conditions.value = '';
     conditions.placeholder = 'Motif ou conditions (au moins 5 caractères)';
   }
+  const rateInput = document.getElementById('com-interest-rate') as HTMLInputElement | null;
+  if (rateInput) {
+    rateInput.value = String(row.interest_rate ?? 15);
+  }
+  const consulting = !isCommitteePending(row.status);
+  for (const id of ['com-approved-amount', 'com-approved-duration', 'com-interest-rate', 'com-conditions']) {
+    const field = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
+    if (field) field.disabled = consulting;
+  }
+  const consultation = document.getElementById('com-consultation-note');
+  if (consultation) {
+    consultation.hidden = !consulting;
+    const status = (row.status || '').toUpperCase();
+    consultation.textContent = status === 'ADJOURNED'
+      ? `Dossier ajourné. Pourquoi : ${row.adjourn_reason || '—'}. Quoi : ${row.adjourn_what || '—'}.`
+      : 'Ce dossier est déjà décidé. Il reste ouvert pour consultation : score, versement et échéancier.';
+  }
 
   setText('com-drawer-req-badge', `#${row.id}`);
-  setHtml('com-drawer-risk-badge', `<i class="fas fa-shield-halved"></i> ${risk.label}`);
+  setHtml('com-drawer-risk-badge', `<i class="fas fa-shield-halved"></i> ${recommendation.label}`);
   const drawerRisk = document.getElementById('com-drawer-risk-badge');
   if (drawerRisk) {
-    drawerRisk.className = risk.cls;
+    drawerRisk.className = recommendation.cls;
   }
   setText('com-drawer-title', name);
   setText('com-drawer-subtitle', `Dossier • ${creditStatusLabel(row.status)} • ${formatFcfa(row.requested_amount)}`);
@@ -387,6 +427,12 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: C
     `<i class="fas fa-check-double"></i> Confiance ${confidence != null ? `${confidence}%` : '—'}`,
   );
   setText('com-drawer-overall-score', score != null ? String(score) : '—');
+  setHtml('com-drawer-recommendation', recommendation.label);
+  const drawerRecommendation = document.getElementById('com-drawer-recommendation');
+  if (drawerRecommendation) {
+    drawerRecommendation.className = `com-score-reco ${recommendation.tone}`.trim();
+  }
+  placeScoreMarker('com-drawer-score-marker', score, recommendation.tone);
   setText('com-drawer-pillar-cashflow', cashflow != null ? `${cashflow} / 100` : '—');
   setText('com-drawer-pillar-coldstart', guarantee != null ? `${guarantee} / 100` : '—');
   setText('com-drawer-pillar-stability', stability != null ? `${stability} / 100` : '—');
@@ -397,6 +443,18 @@ function fillShared(row: CreditRequest, analysis: CreditAnalysis | null, docs: C
   const auditEvents = buildCommitteeAuditTrail(row, analysis, docs, guarantees);
   setHtml('com-drawer-audit-trail', renderCommitteeAuditTrail(auditEvents));
   setText('com-drawer-audit-badge', `${auditEvents.length} trace${auditEvents.length > 1 ? 's' : ''}`);
+  const committeeLock = stageLockMessage(row.status, 'committee');
+  const vote = document.getElementById('com-drawer-btn-vote') as HTMLButtonElement | null;
+  if (vote) {
+    vote.disabled = Boolean(committeeLock);
+    vote.classList.toggle('is-stage-locked', Boolean(committeeLock));
+    vote.title = committeeLock || '';
+  }
+  const committeeNote = document.getElementById('com-drawer-lock');
+  if (committeeNote) {
+    committeeNote.hidden = !committeeLock;
+    committeeNote.textContent = committeeLock || '';
+  }
 
   const voteGrid = document.querySelector('.committee-decision-cards-grid') as HTMLElement | null;
   if (voteGrid) {
@@ -421,7 +479,7 @@ export async function fillAndOpenCommitteeDrawer(identifier?: string) {
   }
   setSelectedCreditRequestId(row.id);
   const [analysis, docs, guarantees] = await Promise.all([
-    loadCreditAnalysis(row.id).catch(() => null),
+    getCreditAnalysis(row.id).catch(() => null),
     listCreditRequestDocuments(row.id).catch(() => [] as CreditDocument[]),
     listCreditRequestGuarantees(row.id).catch(() => [] as CreditGuarantee[]),
   ]);
@@ -443,7 +501,7 @@ export async function fillAndOpenCommitteeModal(identifier?: string) {
   }
   setSelectedCreditRequestId(row.id);
   const [analysis, docs, guarantees] = await Promise.all([
-    loadCreditAnalysis(row.id).catch(() => null),
+    getCreditAnalysis(row.id).catch(() => null),
     listCreditRequestDocuments(row.id).catch(() => [] as CreditDocument[]),
     listCreditRequestGuarantees(row.id).catch(() => [] as CreditGuarantee[]),
   ]);
@@ -492,7 +550,7 @@ export async function submitCommitteeDecisionFromModal(rawDecision?: string) {
     return;
   }
   if (!isCommitteePending(row.status)) {
-    toast.info('Ce dossier a déjà été tranché.');
+    toast.info(stageLockMessage(row.status, 'committee') || 'Ce dossier a déjà été tranché.');
     return;
   }
 

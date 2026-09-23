@@ -55,7 +55,7 @@ export function AnalystDossiersPage() {
             ))}
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-subtle)' }}>
-            Ouvrez un dossier pour consulter le score, les pièces et donner votre avis au comité.
+            Ouvrez un dossier pour l’analyse 360°, les pièces et l’avis au comité.
           </div>
         </div>
       </div>

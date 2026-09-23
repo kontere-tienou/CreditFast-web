@@ -186,6 +186,17 @@ export const membershipFieldLabels: Record<string, string> = Object.fromEntries(
   ),
 );
 membershipFieldLabels.signatory_count = "Nombre de signataires";
+Object.assign(membershipFieldLabels, {
+  full_name: "Nom complet / raison sociale",
+  phone: "Téléphone",
+  city: "Ville de résidence",
+  agency_code: "Code agence",
+  agency_name: "Agence choisie",
+  network_code: "Réseau bancaire",
+  purpose: "Objet de la demande",
+  account_number_hint: "Numéro du compte déclaré",
+  identity_checked_by: "Identité contrôlée par",
+});
 export const physicalDocuments = [
   ["identity_copy", "Copie certifiée de la pièce d’identité", true],
   ["address_proof", "Justificatif de domicile", true],
