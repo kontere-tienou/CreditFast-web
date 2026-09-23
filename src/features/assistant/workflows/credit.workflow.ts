@@ -66,7 +66,10 @@ export function financialProfileGate(
 
 export function savingsMembershipGate(
   onboarding: SavingsOnboarding,
-): CreditWorkflowResult {
+): CreditWorkflowResult | null {
+  if (onboarding.status === 'MATCHED') {
+    return null;
+  }
   const application = onboarding.application;
   const waiting =
     application != null &&
