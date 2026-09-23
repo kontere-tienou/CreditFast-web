@@ -10,6 +10,7 @@ import { SuccessAnimationModal } from './SuccessAnimationModal';
 import { LoanApplicationModal } from './LoanApplicationModal';
 import { UploadDocumentModal } from './UploadDocumentModal';
 import { SavingsMembershipModal } from '@/features/savings/SavingsMembershipModal';
+import { getUiSession } from '@/app/session';
 
 export function LegacyDialogs() {
   return (
@@ -24,7 +25,7 @@ export function LegacyDialogs() {
       <SettingsModal />
       <SuccessAnimationModal />
       <LoanApplicationModal />
-      <SavingsMembershipModal />
+      {getUiSession()?.role === 'CLIENT' && <SavingsMembershipModal />}
       <UploadDocumentModal />
     </>
   );

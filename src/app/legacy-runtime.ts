@@ -1,7 +1,7 @@
 import { ROLE_PROFILES, VIEW_PATHS } from '@/app/roles';
 import { getUiSession } from '@/app/session';
 import { toast } from '@heroui/react';
-import { fetchClientProfile, hasActiveSavingsAccount } from '@/api/profile';
+import { fetchClientProfile, hasActiveSavingsAccount, hasRequiredIdentityDocument, listKycDocuments } from '@/api/profile';
 import { readSavingsSession, writeSavingsSession, clearSavingsSession, type LoanIntent } from '@/features/savings/workflow';
 
 type LegacyApp = {
@@ -309,6 +309,14 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
         if (!hasActiveSavingsAccount(profile)) {
           if (prefill) writeSavingsSession(savingsOwner, 'loan', prefill);
           window.dispatchEvent(new Event('creditfast:open-savings-membership'));
+          return false;
+        }
+        const documents = await listKycDocuments();
+        if (getUiSession()?.token !== token) return false;
+        if (!hasRequiredIdentityDocument(documents)) {
+          if (prefill) writeSavingsSession(savingsOwner, 'loan', prefill);
+          toast.warning('Une pièce d’identité est obligatoire pour compléter votre profil CreditFast.');
+          navigate('/app/client/documents');
           return false;
         }
       } catch {

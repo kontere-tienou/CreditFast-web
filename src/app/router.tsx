@@ -25,6 +25,7 @@ import {
   AdminUsersPage,
 } from '@/features/admin';
 import { LegacyDialogs } from '@/features/modals';
+import { LegacyDrawers } from '@/features/drawers';
 import { ClientSavingsPage } from '@/features/savings/ClientSavingsPage';
 import { AdminSavingsPage } from '@/features/admin/AdminSavingsPage';
 import { FieldVisitsPage } from '@/features/agent/FieldVisitsPage';
@@ -49,6 +50,7 @@ function RequireSession() {
     <AppShell>
       <Outlet />
       <LegacyDialogs />
+      <LegacyDrawers />
     </AppShell>
   );
 }

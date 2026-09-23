@@ -1,14 +1,23 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { ROLE_PROFILES, roleFromPath } from '@/app/roles';
-import { getUiSession, installLegacyAppBridge, consumeQueuedLoanModal } from '@/app/session';
-import { logoutFromApi, fetchUserPhotoFile } from '@/api';
-import { PROFILE_CHANGED_EVENT } from '@/features/workflow/workflow';
-import { Button, callApp as invokeLegacyApp } from '@/shared/ui';
-import { toast } from '@heroui/react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { EditProfileModal } from '@/features/modals/EditProfileModal';
-import { ChangePasswordModal } from '@/features/modals/ChangePasswordModal';
-import { NotificationBell } from '@/features/workflow/NotificationBell';
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { ROLE_PROFILES, roleFromPath } from "@/app/roles";
+import {
+  getUiSession,
+  installLegacyAppBridge,
+  consumeQueuedLoanModal,
+} from "@/app/session";
+import {
+  logoutFromApi,
+  fetchProfilePhotoMeta,
+  fetchUserPhotoFile,
+} from "@/api";
+import { PROFILE_CHANGED_EVENT } from "@/features/workflow/workflow";
+import { Button, callApp as invokeLegacyApp } from "@/shared/ui";
+import { toast } from "@heroui/react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { EditProfileModal } from "@/features/modals/EditProfileModal";
+import { ChangePasswordModal } from "@/features/modals/ChangePasswordModal";
+import { NotificationBell } from "@/features/workflow/NotificationBell";
+import { ClientEntryCheck } from "@/features/client/ClientEntryCheck";
 
 type AppShellProps = {
   children: ReactNode;
@@ -22,7 +31,10 @@ export function AppShell({ children }: AppShellProps) {
   const profile = ROLE_PROFILES[role];
   const displayName = session?.name || profile.displayName;
   const [isCollapsed, setIsCollapsed] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 1280 && window.innerWidth >= 768,
+    () =>
+      typeof window !== "undefined" &&
+      window.innerWidth < 1280 &&
+      window.innerWidth >= 768,
   );
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -35,8 +47,11 @@ export function AppShell({ children }: AppShellProps) {
 
   useEffect(() => {
     installLegacyAppBridge((path) => {
-      if (path === '/app/analyst/audit' && location.pathname.startsWith('/app/committee')) {
-        navigate('/app/committee/audit');
+      if (
+        path === "/app/analyst/audit" &&
+        location.pathname.startsWith("/app/committee")
+      ) {
+        navigate("/app/committee/audit");
         return;
       }
       navigate(path);
@@ -45,7 +60,9 @@ export function AppShell({ children }: AppShellProps) {
     if (!consumeQueuedLoanModal()) {
       return;
     }
-    const frame = window.requestAnimationFrame(() => invokeLegacyApp('openNewLoanModal'));
+    const frame = window.requestAnimationFrame(() =>
+      invokeLegacyApp("openNewLoanModal"),
+    );
     return () => window.cancelAnimationFrame(frame);
   }, [location.pathname, navigate]);
 
@@ -58,19 +75,19 @@ export function AppShell({ children }: AppShellProps) {
     let revoked = false;
     let objectUrl: string | null = null;
     const load = () => {
-      void fetchUserPhotoFile(userId)
-        .then(({ blob }) => {
-          objectUrl = URL.createObjectURL(blob);
-          if (!revoked) {
-            setAvatarUrl(objectUrl);
-          } else {
-            URL.revokeObjectURL(objectUrl);
+      void fetchProfilePhotoMeta()
+        .then((meta) => (meta.has_photo ? fetchUserPhotoFile(userId) : null))
+        .then((result) => {
+          if (!result) {
+            if (!revoked) setAvatarUrl(profile.avatar);
+            return;
           }
+          objectUrl = URL.createObjectURL(result.blob);
+          if (!revoked) setAvatarUrl(objectUrl);
+          else URL.revokeObjectURL(objectUrl);
         })
         .catch(() => {
-          if (!revoked) {
-            setAvatarUrl(profile.avatar);
-          }
+          if (!revoked) setAvatarUrl(profile.avatar);
         });
     };
     load();
@@ -87,14 +104,14 @@ export function AppShell({ children }: AppShellProps) {
   useEffect(() => {
     const applyCollapsedClass = () => {
       const iconRail = isCollapsed && window.innerWidth >= 768;
-      document.body.classList.toggle('sidebar-collapsed', iconRail);
+      document.body.classList.toggle("sidebar-collapsed", iconRail);
     };
 
     applyCollapsedClass();
-    window.addEventListener('resize', applyCollapsedClass);
+    window.addEventListener("resize", applyCollapsedClass);
     return () => {
-      window.removeEventListener('resize', applyCollapsedClass);
-      document.body.classList.remove('sidebar-collapsed');
+      window.removeEventListener("resize", applyCollapsedClass);
+      document.body.classList.remove("sidebar-collapsed");
     };
   }, [isCollapsed]);
 
@@ -111,8 +128,8 @@ export function AppShell({ children }: AppShellProps) {
     };
 
     syncDefaultCollapse();
-    window.addEventListener('resize', syncDefaultCollapse);
-    return () => window.removeEventListener('resize', syncDefaultCollapse);
+    window.addEventListener("resize", syncDefaultCollapse);
+    return () => window.removeEventListener("resize", syncDefaultCollapse);
   }, []);
 
   useEffect(() => {
@@ -126,22 +143,22 @@ export function AppShell({ children }: AppShellProps) {
       }
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setProfileOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
     };
   }, [profileOpen]);
 
   const logout = () => {
     setProfileOpen(false);
-    void logoutFromApi().finally(() => navigate('/'));
+    void logoutFromApi().finally(() => navigate("/"));
   };
 
   const callApp = (method: string) => {
@@ -151,13 +168,13 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   return (
-    <div id="app-wrapper" style={{ display: 'flex' }}>
+    <div id="app-wrapper" style={{ display: "flex" }}>
       <div
         id="sidebar-backdrop"
-        className={isMobileOpen ? 'active' : ''}
+        className={isMobileOpen ? "active" : ""}
         onClick={() => setIsMobileOpen(false)}
       />
-      <aside id="sidebar" className={isMobileOpen ? 'mobile-open' : undefined}>
+      <aside id="sidebar" className={isMobileOpen ? "mobile-open" : undefined}>
         <div className="sidebar-header">
           <a
             href={profile.homePath}
@@ -198,29 +215,39 @@ export function AppShell({ children }: AppShellProps) {
               <div className="menu-group-title">{group.title}</div>
               <ul className="nav-items-list">
                 {group.items.map((item) => {
-                  const exactMatch = item.path.split('/').length <= 3;
+                  const exactMatch = item.path.split("/").length <= 3;
                   const isActive =
                     location.pathname === item.path ||
                     location.pathname === `${item.path}/` ||
-                    (!exactMatch && location.pathname.startsWith(`${item.path}/`));
+                    (!exactMatch &&
+                      location.pathname.startsWith(`${item.path}/`));
 
                   return (
-                  <li className={`nav-item${isActive ? ' active' : ''}`} key={item.id}>
-                    <NavLink
-                      to={item.path}
-                      className={({ isActive: linkActive }) => `nav-link${linkActive ? ' active' : ''}`}
-                      end={exactMatch}
-                      title={item.label}
-                      data-nav-title={item.label}
-                      onClick={() => setIsMobileOpen(false)}
+                    <li
+                      className={`nav-item${isActive ? " active" : ""}`}
+                      key={item.id}
                     >
-                      <i className={`fas ${item.icon}`}></i>
-                      <span className="nav-link-text">{item.label}</span>
-                      {item.badge ? (
-                        <span className={`nav-badge ${item.badgeClass ?? ''}`}>{item.badge}</span>
-                      ) : null}
-                    </NavLink>
-                  </li>
+                      <NavLink
+                        to={item.path}
+                        className={({ isActive: linkActive }) =>
+                          `nav-link${linkActive ? " active" : ""}`
+                        }
+                        end={exactMatch}
+                        title={item.label}
+                        data-nav-title={item.label}
+                        onClick={() => setIsMobileOpen(false)}
+                      >
+                        <i className={`fas ${item.icon}`}></i>
+                        <span className="nav-link-text">{item.label}</span>
+                        {item.badge ? (
+                          <span
+                            className={`nav-badge ${item.badgeClass ?? ""}`}
+                          >
+                            {item.badge}
+                          </span>
+                        ) : null}
+                      </NavLink>
+                    </li>
                   );
                 })}
               </ul>
@@ -230,23 +257,23 @@ export function AppShell({ children }: AppShellProps) {
 
         <div className="sidebar-footer">
           <div className="digicoop-card">
-            <div className="digicoop-text" style={{ width: '100%' }}>
+            <div className="digicoop-text" style={{ width: "100%" }}>
               <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                   marginBottom: 6,
                 }}
               >
                 <h6>Réseau CreditFast Mali</h6>
                 <span
                   style={{
-                    fontSize: '0.62rem',
-                    color: '#f1ca30',
+                    fontSize: "0.62rem",
+                    color: "#f1ca30",
                     fontWeight: 700,
-                    background: 'rgba(241, 202, 48, 0.18)',
-                    padding: '1px 5px',
+                    background: "rgba(241, 202, 48, 0.18)",
+                    padding: "1px 5px",
                     borderRadius: 4,
                   }}
                 >
@@ -282,7 +309,7 @@ export function AppShell({ children }: AppShellProps) {
             <NotificationBell />
             <div className="profile-dropdown-container" ref={profileRef}>
               <button
-                className={`topbar-profile-btn${profileOpen ? ' active' : ''}`}
+                className={`topbar-profile-btn${profileOpen ? " active" : ""}`}
                 type="button"
                 aria-haspopup="true"
                 aria-expanded={profileOpen}
@@ -300,7 +327,9 @@ export function AppShell({ children }: AppShellProps) {
                 <i className="fas fa-chevron-down profile-caret"></i>
               </button>
 
-              <div className={`profile-dropdown-menu${profileOpen ? ' show' : ''}`}>
+              <div
+                className={`profile-dropdown-menu${profileOpen ? " show" : ""}`}
+              >
                 <ul className="profile-menu-list">
                   <li>
                     <a
@@ -309,8 +338,8 @@ export function AppShell({ children }: AppShellProps) {
                       onClick={(event) => {
                         event.preventDefault();
                         setProfileOpen(false);
-                        if (role === 'CLIENT') {
-                          navigate('/app/client/profile');
+                        if (role === "CLIENT") {
+                          navigate("/app/client/profile");
                           return;
                         }
                         setEditProfileOpen(true);
@@ -326,7 +355,7 @@ export function AppShell({ children }: AppShellProps) {
                       className="profile-menu-item"
                       onClick={(event) => {
                         event.preventDefault();
-                        callApp('openSettingsModal');
+                        callApp("openSettingsModal");
                       }}
                     >
                       <i className="fas fa-sliders-h text-secondary"></i>
@@ -354,7 +383,7 @@ export function AppShell({ children }: AppShellProps) {
                       onClick={(event) => {
                         event.preventDefault();
                         setProfileOpen(false);
-                        toast.info('Support CIF DigiCoop-WA+ disponible 24/7');
+                        toast.info("Support CIF DigiCoop-WA+ disponible 24/7");
                       }}
                     >
                       <i className="fas fa-circle-question text-info"></i>
@@ -369,7 +398,7 @@ export function AppShell({ children }: AppShellProps) {
                   <Button
                     variant="danger-subtle"
                     className="btn-action-logout"
-                    style={{ width: '100%', justifyContent: 'center' }}
+                    style={{ width: "100%", justifyContent: "center" }}
                     onClick={logout}
                   >
                     <i className="fas fa-right-from-bracket"></i> Se Déconnecter
@@ -379,7 +408,9 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
         </header>
-        <div id="content-area">{children}</div>
+        <div id="content-area">
+          {role === 'CLIENT' && <ClientEntryCheck key={session?.userId || session?.identifier} />}{children}
+        </div>
         <div id="toast-container"></div>
       </div>
       <EditProfileModal
@@ -389,7 +420,10 @@ export function AppShell({ children }: AppShellProps) {
           setSessionNonce((value) => value + 1);
         }}
       />
-      <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
+      <ChangePasswordModal
+        open={passwordOpen}
+        onClose={() => setPasswordOpen(false)}
+      />
     </div>
   );
 }

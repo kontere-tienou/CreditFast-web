@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { toast } from '@heroui/react';
+import { useEffect, useRef, useState } from "react";
+import { toast } from "@heroui/react";
 import {
   deleteNotification,
   getNotification,
@@ -7,45 +7,70 @@ import {
   markNotificationRead,
   notificationTypeLabel,
   type AppNotification,
-} from '@/api/notifications';
-import { isApiError } from '@/api/errors';
-import { getUiSession } from '@/app/session';
-import { formatDate, REQUESTS_CHANGED_EVENT } from './workflow';
-import { SAVINGS_CHANGED } from '@/features/savings/workflow';
+} from "@/api/notifications";
+import { isApiError } from "@/api/errors";
+import { getUiSession } from "@/app/session";
+import { formatDate, REQUESTS_CHANGED_EVENT } from "./workflow";
+import { SAVINGS_CHANGED } from "@/features/savings/workflow";
 
 function formatDateTime(value?: string | null) {
   if (!value) {
-    return '';
+    return "";
   }
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return formatDate(value);
   }
-  return date.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+  return date.toLocaleString("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 }
 
-function targetViewFor(item: AppNotification): { view: string; label: string } | null {
-  const type = (item.type || '').toUpperCase();
-  if (type === 'FIELD_VISIT') {
+function targetViewFor(
+  item: AppNotification,
+): { view: string; label: string } | null {
+  const type = (item.type || "").toUpperCase();
+  if (type === "FIELD_VISIT") {
     const role = getUiSession()?.role;
-    if (role === 'CREDIT_OFFICER') return { view: 'view-agent-field-visits', label: 'Voir les visites terrain' };
-    if (role === 'ADMIN') return { view: 'view-admin-field-visits', label: 'Voir les visites terrain' };
+    if (role === "CREDIT_OFFICER")
+      return {
+        view: "view-agent-field-visits",
+        label: "Voir les visites terrain",
+      };
+    if (role === "ADMIN")
+      return {
+        view: "view-admin-field-visits",
+        label: "Voir les visites terrain",
+      };
     return null;
   }
-  if (type.startsWith('SAVINGS_MEMBERSHIP_')) {
-    return getUiSession()?.role === 'ADMIN'
-      ? { view: 'view-admin-savings', label: 'Voir les adhésions épargne' }
-      : { view: 'view-client-savings', label: 'Voir mon compte épargne' };
+  if (type.startsWith("SAVINGS_MEMBERSHIP_")) {
+    return getUiSession()?.role === "ADMIN"
+      ? { view: "view-admin-savings", label: "Voir les adhésions épargne" }
+      : { view: "view-client-savings", label: "Voir mon compte épargne" };
   }
-  const text = `${item.title || ''} ${item.message || ''}`.toLowerCase();
-  if (type === 'COMPLEMENTS_REQUESTED' || text.includes('complément') || text.includes('pièce')) {
-    return { view: 'view-client-documents', label: 'Joindre une pièce' };
+  const text = `${item.title || ""} ${item.message || ""}`.toLowerCase();
+  if (
+    type === "COMPLEMENTS_REQUESTED" ||
+    text.includes("complément") ||
+    text.includes("pièce")
+  ) {
+    return { view: "view-client-documents", label: "Joindre une pièce" };
   }
-  if (type === 'LOAN_DISBURSED' || text.includes('décaiss') || text.includes('échéanc')) {
-    return { view: 'view-client-schedule', label: 'Voir l’échéancier' };
+  if (
+    type === "LOAN_DISBURSED" ||
+    text.includes("décaiss") ||
+    text.includes("échéanc")
+  ) {
+    return { view: "view-client-schedule", label: "Voir l’échéancier" };
   }
-  if (type === 'STATUS_UPDATE' || text.includes('dossier') || text.includes('demande')) {
-    return { view: 'view-client-requests', label: 'Voir mes demandes' };
+  if (
+    type === "STATUS_UPDATE" ||
+    text.includes("dossier") ||
+    text.includes("demande")
+  ) {
+    return { view: "view-client-requests", label: "Voir mes demandes" };
   }
   return null;
 }
@@ -59,6 +84,11 @@ export function NotificationBell() {
   const boxRef = useRef<HTMLDivElement>(null);
 
   const reload = async () => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setItems([]);
+      setUnread(0);
+      return;
+    }
     try {
       const payload = await listNotifications();
       setItems(payload.items.slice(0, 12));
@@ -92,8 +122,8 @@ export function NotificationBell() {
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', onPointer);
-    return () => document.removeEventListener('mousedown', onPointer);
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
   }, [open]);
 
   const openDetail = async (item: AppNotification) => {
@@ -105,12 +135,18 @@ export function NotificationBell() {
     setActiveId(item.id);
     setDetail(item);
     if (!item.is_read) {
-      void markNotificationRead(item.id).then(() => void reload()).catch(() => undefined);
+      void markNotificationRead(item.id)
+        .then(() => void reload())
+        .catch(() => undefined);
     }
     try {
       const full = await getNotification(item.id);
       if (full) {
-        setDetail((current) => (current?.id === item.id ? { ...item, ...full, is_read: true } : current));
+        setDetail((current) =>
+          current?.id === item.id
+            ? { ...item, ...full, is_read: true }
+            : current,
+        );
       }
     } catch {
       // le résumé de la liste suffit si le détail est indisponible
@@ -127,7 +163,11 @@ export function NotificationBell() {
       }
       void reload();
     } catch (error) {
-      toast.danger(isApiError(error) ? error.message : 'Impossible de retirer cette notification.');
+      toast.danger(
+        isApiError(error)
+          ? error.message
+          : "Impossible de retirer cette notification.",
+      );
     }
   };
 
@@ -137,12 +177,12 @@ export function NotificationBell() {
   };
 
   return (
-    <div ref={boxRef} style={{ position: 'relative' }}>
+    <div ref={boxRef} style={{ position: "relative" }}>
       <button
         className="topbar-action-btn"
         title="Centre de Notifications"
         type="button"
-        style={{ position: 'relative' }}
+        style={{ position: "relative" }}
         onClick={() => {
           setOpen((was) => !was);
           if (!open) {
@@ -151,7 +191,9 @@ export function NotificationBell() {
         }}
       >
         <i className="fas fa-bell"></i>
-        {unread > 0 ? <span className="cf-notif-badge">{unread > 9 ? '9+' : unread}</span> : null}
+        {unread > 0 ? (
+          <span className="cf-notif-badge">{unread > 9 ? "9+" : unread}</span>
+        ) : null}
       </button>
       {open ? (
         <div className="cf-notif-panel">
@@ -163,18 +205,26 @@ export function NotificationBell() {
               {items.map((item) => {
                 const isActive = activeId === item.id;
                 const shown = isActive && detail ? detail : item;
-                const target = getUiSession()?.role === 'CLIENT' || shown.type?.toUpperCase() === 'FIELD_VISIT' || (getUiSession()?.role === 'ADMIN' && shown.type?.toUpperCase().startsWith('SAVINGS_MEMBERSHIP_')) ? targetViewFor(shown) : null;
+                const target =
+                  getUiSession()?.role === "CLIENT" ||
+                  shown.type?.toUpperCase() === "FIELD_VISIT" ||
+                  (getUiSession()?.role === "ADMIN" &&
+                    shown.type?.toUpperCase().startsWith("SAVINGS_MEMBERSHIP_"))
+                    ? targetViewFor(shown)
+                    : null;
                 return (
                   <li key={item.id}>
                     <div className="cf-notif-row">
                       <button
                         type="button"
-                        className={`cf-notif-item${item.is_read ? '' : ' is-unread'}`}
+                        className={`cf-notif-item${item.is_read ? "" : " is-unread"}`}
                         aria-expanded={isActive}
                         onClick={() => void openDetail(item)}
                       >
-                        <strong>{item.title || notificationTypeLabel(item.type)}</strong>
-                        <span>{item.message || ''}</span>
+                        <strong>
+                          {item.title || notificationTypeLabel(item.type)}
+                        </strong>
+                        <span>{item.message || ""}</span>
                       </button>
                       <button
                         type="button"
@@ -191,19 +241,31 @@ export function NotificationBell() {
                     </div>
                     {isActive ? (
                       <div className="cf-notif-detail">
-                        <strong>{shown.title || notificationTypeLabel(shown.type)}</strong>
-                        <p>{shown.message || 'Aucun détail supplémentaire.'}</p>
+                        <strong>
+                          {shown.title || notificationTypeLabel(shown.type)}
+                        </strong>
+                        <p>{shown.message || "Aucun détail supplémentaire."}</p>
                         <small>
                           {notificationTypeLabel(shown.type)}
-                          {shown.created_at ? ` · ${formatDateTime(shown.created_at)}` : ''}
+                          {shown.created_at
+                            ? ` · ${formatDateTime(shown.created_at)}`
+                            : ""}
                         </small>
                         <div className="cf-notif-detail-actions">
                           {target ? (
-                            <button type="button" className="btn btn-primary btn-xs" onClick={() => goTo(target.view)}>
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-xs"
+                              onClick={() => goTo(target.view)}
+                            >
                               {target.label}
                             </button>
                           ) : null}
-                          <button type="button" className="btn btn-secondary btn-xs" onClick={() => void remove(item.id)}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-xs"
+                            onClick={() => void remove(item.id)}
+                          >
                             <i className="fas fa-trash-can"></i> Retirer
                           </button>
                         </div>

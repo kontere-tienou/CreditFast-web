@@ -1,5 +1,6 @@
 import { ROLE_PROFILES, type RoleCode } from '@/app/roles';
 import { patchLegacyApp } from '@/app/legacy-runtime';
+import { LOCAL_WORKFLOW } from './runtimeMode';
 
 const SESSION_KEY = 'CREDITFAST_UI_SESSION';
 const OPEN_LOAN_MODAL_KEY = 'CREDITFAST_OPEN_LOAN_MODAL';
@@ -25,6 +26,7 @@ function readStoredSession(storage: Storage): UiSession | null {
     if (!parsed.identifier || !parsed.token || !parsed.role || !ROLE_PROFILES[parsed.role]) {
       return null;
     }
+    if (parsed.token.startsWith('local-workflow:') !== LOCAL_WORKFLOW) return null;
     return {
       identifier: parsed.identifier,
       role: parsed.role,

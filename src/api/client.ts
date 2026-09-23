@@ -1,6 +1,7 @@
 import { clearUiSession, getAccessToken } from '@/app/session';
 import { ApiError } from './errors';
 import type { ApiErrorBody } from './types';
+import { LOCAL_WORKFLOW } from '@/app/runtimeMode';
 
 export const apiBaseUrl = (import.meta.env.VITE_API_URL ?? 'https://creditfast-api.onrender.com/api').replace(/\/$/, '');
 
@@ -17,6 +18,10 @@ async function parseErrorBody(response: Response): Promise<ApiErrorBody | undefi
 }
 
 export async function apiClient(path: string, init: ApiClientOptions = {}): Promise<Response> {
+  if (LOCAL_WORKFLOW) {
+    const { localWorkflowRequest } = await import('./localWorkflow');
+    return localWorkflowRequest(path, init, getAccessToken());
+  }
   const { skipAuth, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
   if (!headers.has('Accept')) {

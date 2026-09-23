@@ -5,6 +5,8 @@ import { loginWithCredentials, registerClient } from '@/api';
 import { getUiSession } from '@/app/session';
 import { ROLE_PROFILES } from '@/app/roles';
 import { Button } from '@/shared/ui';
+import { LOCAL_WORKFLOW } from '@/app/runtimeMode';
+import { DEMO_ACCOUNTS } from '@/api/localWorkflow';
 
 const SLIDE_COUNT = 3;
 const REMEMBER_ME_KEY = 'REMEMBER_ME_CRED';
@@ -413,6 +415,21 @@ export function AuthPage() {
             </div>
 
             <form id="login-form" noValidate onSubmit={handleSubmit}>
+              {LOCAL_WORKFLOW && <fieldset className="form-group">
+                <legend>Atelier des parcours — mode local</legend>
+                <p>Aucun backend connecté. Données fictives enregistrées dans ce navigateur. Choisissez un scénario, puis connectez-vous.</p>
+                <label className="form-label" htmlFor="demo-scenario">Scénario à tester</label>
+                <select id="demo-scenario" className="form-control" value="" onChange={event => {
+                  if (!event.target.value) return;
+                  switchAuthMode('login');
+                  setIdentifier(event.target.value);
+                  setPassword('demo-local');
+                }}>
+                  <option value="">Choisir un parcours…</option>
+                  {DEMO_ACCOUNTS.map(account => <option key={account.identifier} value={account.identifier}>{account.label}</option>)}
+                </select>
+                <small>Authentification simulée : les mots de passe ne sont ni vérifiés ni enregistrés.</small>
+              </fieldset>}
               {mode === "register" ? (
                 <>
                   <div className="auth-stepper" aria-label="Progression de création de compte">
@@ -746,7 +763,7 @@ export function AuthPage() {
                             </>
                           ) : (
                             <>
-                              <i className="fas fa-user-plus mr-1"></i> Créer le compte et entrer
+                              <i className="fas fa-user-plus mr-1"></i> Créer mon accès CreditFast
                             </>
                           )}
                         </span>
@@ -755,6 +772,7 @@ export function AuthPage() {
                   </div>
 
                   <div className="auth-options-row auth-options-row-register">
+                    <p>Votre accès CreditFast est distinct du compte épargne bancaire. Après connexion, votre compte épargne est vérifié automatiquement. Une pièce d’identité est obligatoire pour compléter votre profil et demander un prêt.</p>
                     <span />
                     <button
                       type="button"
