@@ -250,7 +250,7 @@ export function LoanApplicationModal() {
         <h4 style={{ marginBottom: "0.4rem", fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
           <i className="fas fa-calculator text-primary mr-2"></i> Étape 3 : Revenus, Charges & Capacité
         </h4>
-        <p style={{ margin: "0 0 1.25rem", fontSize: "0.82rem", color: "var(--text-secondary)" }}>Revenu, dépenses et mensualités en cours viennent du contrôle du compte. Ils ne se modifient pas ici.</p>
+        <p style={{ margin: "0 0 1.25rem", fontSize: "0.82rem", color: "var(--text-secondary)" }}>Revenu, dépenses et nombre de crédits en cours viennent du contrôle du compte. Ils ne se modifient pas ici.</p>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Revenu Mensuel Moyen de l'Activité
@@ -264,9 +264,8 @@ export function LoanApplicationModal() {
         </div>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Mensualités d'autres crédits en cours
-              (FCFA)</label>
-            <CfField kind="amount" id="wiz-debt" readOnly defaultValue="0" />
+            <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Nombre de crédits en cours</label>
+            <CfField kind="number" id="wiz-debt" readOnly defaultValue="0" />
           </div>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: "0.8rem", fontWeight: 600 }}>Nombre de personnes à charge</label>

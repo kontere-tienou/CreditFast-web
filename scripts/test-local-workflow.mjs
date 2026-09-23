@@ -67,7 +67,8 @@ assert.deepEqual((await apiJson(`/profile/financial-accounts/${newAccount.id}/tr
 const loanRequest = (await post('/credit-requests', { requested_amount: 120000, duration_months: 12, purpose: 'Test local', declared_monthly_income: 1, declared_monthly_expenses: 2, existing_debt_payment: 9 })).credit_request;
 assert.equal(loanRequest.declared_monthly_income, 450000);
 assert.equal(loanRequest.declared_monthly_expenses, 150000);
-assert.equal(loanRequest.existing_debt_payment, 0);
+assert.equal(loanRequest.ongoing_credit_count, 0);
+assert.equal(loanRequest.existing_debt_payment, undefined);
 await login('+22370000001');
 await assert.rejects(apiJson(`/credit-requests/${loanRequest.id}`), error => error.status === 404);
 await login('+22370000002');
@@ -113,7 +114,7 @@ granted.loan.repayments[0].due_date = new Date(Date.now() - 86400000).toISOStrin
 storage.set('creditfast:local-workflow:v1', JSON.stringify(lateStore));
 await login('+22370000002');
 const nextRequest = (await post('/credit-requests', { requested_amount: 120000, duration_months: 12, purpose: 'Deuxième demande', existing_debt_payment: 0 })).credit_request;
-assert.equal(nextRequest.existing_debt_payment, 11500);
+assert.equal(nextRequest.ongoing_credit_count, 1);
 assert.equal(nextRequest.declared_monthly_income, 450000);
 await post(`/credit-requests/${nextRequest.id}/submit`);
 await login('agent@demo.creditfast');

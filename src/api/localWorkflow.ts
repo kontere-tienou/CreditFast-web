@@ -133,7 +133,7 @@ function scoreArrival(store: Store, row: Row) {
   const finances = profile.financial_profile || {};
   const income = Number(row.declared_monthly_income ?? finances.monthly_income ?? 0);
   const expenses = Number(row.declared_monthly_expenses ?? finances.monthly_expenses ?? 0);
-  const debt = Number(row.existing_debt_payment ?? finances.existing_debt_payment ?? 0);
+  const debt = store.requests.filter(item => item.client_id === row.client_id && item.id !== row.id && item.loan && ['ACTIVE', 'APPROVED'].includes(item.loan.status)).reduce((sum, item) => sum + (Math.round(Number(item.loan.monthly_payment)) || 0), 0);
   const amount = Number(row.requested_amount || 0);
   const months = Math.max(1, Number(row.duration_months || 12));
   const disposable = income - expenses - debt;
@@ -212,8 +212,8 @@ function activeSavingsAccount(profile: Row | undefined) {
 }
 function accountFigures(store: Store, clientId: number) {
   const finances = store.profiles.find(row => row.id === clientId)?.financial_profile ?? {};
-  const existing = store.requests.filter(row => row.client_id === clientId && row.loan && ['ACTIVE', 'APPROVED'].includes(row.loan.status)).reduce((sum, row) => sum + (Math.round(Number(row.loan.monthly_payment)) || 0), 0);
-  return { declared_monthly_income: Number(finances.monthly_income) || 0, declared_monthly_expenses: Number(finances.monthly_expenses) || 0, existing_debt_payment: existing };
+  const ongoing = store.requests.filter(row => row.client_id === clientId && row.loan && ['ACTIVE', 'APPROVED'].includes(row.loan.status)).length;
+  return { declared_monthly_income: Number(finances.monthly_income) || 0, declared_monthly_expenses: Number(finances.monthly_expenses) || 0, ongoing_credit_count: ongoing };
 }
 const collection = (data: Row[]) => response({ data, current_page: 1, last_page: 1, total: data.length });
 export const DEMO_ACCOUNTS = [
@@ -403,7 +403,7 @@ async function handle(rawPath: string, init: RequestInit, token?: string): Promi
   }
   if (path === '/profile/account-check' && method === 'GET' && client) {
     const figures = accountFigures(store, client.id);
-    return response({ monthly_income: figures.declared_monthly_income, monthly_expenses: figures.declared_monthly_expenses, existing_debt_payment: figures.existing_debt_payment });
+    return response({ monthly_income: figures.declared_monthly_income, monthly_expenses: figures.declared_monthly_expenses, ongoing_credit_count: figures.ongoing_credit_count });
   }
   if (path === '/profile/financial-profile' && client) {
     if (method === 'GET') return response({ financial_profile: client.financial_profile ?? {} });
@@ -567,6 +567,7 @@ async function handle(rawPath: string, init: RequestInit, token?: string): Promi
     if (!rawId && method === 'GET') return collection(rows);
     if (!rawId && method === 'POST' && client) {
       const row = make({ client_id: user.id, client, status: 'DRAFT', agency_code: null, assigned_agent_id: null, assignment_status: null, ...accountFigures(store, user.id) });
+      delete row.existing_debt_payment;
       store.requests.push(row); return commit({ credit_request: row });
     }
     const row = rows.find(item => item.id === Number(rawId));
@@ -578,6 +579,7 @@ async function handle(rawPath: string, init: RequestInit, token?: string): Promi
           const protectedFields = ['id', 'client_id', 'client', 'status', 'agency_code', 'agency_name', 'zone_code', 'assigned_agent_id', 'assigned_agent_name', 'assignment_status', 'assignment_reason', 'assignment_history', 'loan', 'loan_id'];
           for (const [key, value] of Object.entries(body)) if (!protectedFields.includes(key) && !(key === 'financial_account_id' && row.assignment_status)) row[key] = value;
           Object.assign(row, accountFigures(store, row.client_id));
+          delete row.existing_debt_payment;
         }
         if (method === 'DELETE') store.requests = store.requests.filter(item => item !== row);
       }

@@ -155,7 +155,7 @@ export async function hydrateWizardFromProfile(draft?: {
   }
   setField("wiz-income", checked?.monthly_income ?? 0);
   setField("wiz-expenses", checked?.monthly_expenses ?? 0);
-  setField("wiz-debt", checked?.existing_debt_payment ?? 0);
+  setField("wiz-debt", checked?.ongoing_credit_count ?? 0);
   if (financial?.dependents_count != null) {
     setField("wiz-dependents", financial.dependents_count);
   }

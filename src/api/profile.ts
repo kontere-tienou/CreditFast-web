@@ -181,6 +181,7 @@ export type FinancialProfile = {
   other_income?: number;
   monthly_expenses?: number;
   existing_debt_payment?: number;
+  ongoing_credit_count?: number;
   dependents_count?: number;
 };
 
@@ -320,7 +321,7 @@ export async function fetchAccountCheck(): Promise<FinancialProfile | null> {
   return {
     monthly_income: asNumber(nested.monthly_income),
     monthly_expenses: asNumber(nested.monthly_expenses),
-    existing_debt_payment: asNumber(nested.existing_debt_payment),
+    ongoing_credit_count: asNumber(nested.ongoing_credit_count),
   };
 }
 

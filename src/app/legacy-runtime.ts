@@ -246,13 +246,12 @@ export function patchLegacyApp(navigate: (path: string) => void): void {
   app.updateWizardCalculation = () => {
     const income = fieldNumber('wiz-income', 0);
     const expenses = fieldNumber('wiz-expenses', 0);
-    const debt = fieldNumber('wiz-debt', 0);
     const amount = fieldNumber('wiz-amount', 2500000);
     const months = Math.max(1, fieldNumber('wiz-duration', 12));
     const principal = Math.max(0, amount);
     const totalRate = Math.max(0.06, Math.min(0.22, months * 0.012));
     const installment = principal > 0 ? Math.ceil((principal * (1 + totalRate)) / months) : 0;
-    const disposable = income - expenses - debt;
+    const disposable = income - expenses;
     const restAfterPayment = disposable - installment;
     const sufficient = installment > 0 && disposable > 0 && restAfterPayment >= Math.max(0, income * 0.2);
 
